@@ -14,7 +14,7 @@ function Form() {
       <div className="max-w-[1000px] mx-auto mt-12">
         <ErrorMessage errorKey="form" />
       </div>
-      <div className="max-w-[1000px] mx-auto bg-white border border-gray-300 rounded-2xl mt-2">
+      <div className="max-w-[1000px] mx-auto bg-slate-900 border border-slate-700 rounded-2xl mt-2">
         <FormHeader formSchema={formSchema} />
         <form className="py-5 px-6">
           {formSchema.sections.map((section, i) => (
@@ -121,7 +121,8 @@ export const formSchema: IFormSchema = {
           submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "ALL",
-          className: "bg-amber-500 text-white px-16 rounded py-1.5",
+          className:
+            "bg-slate-700 w-52  text-white  cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
         },
       ],
     },
@@ -224,11 +225,12 @@ export const formSchema: IFormSchema = {
   globalValidation: [],
   actionButtons: [
     {
-      label: "ارسال",
+      label: "تایید و مرحله بعد",
       submitterKey: "SUBMIT",
       type: "submit",
       validateFields: "ALL",
-      className: "bg-violet-500 text-white px-16 rounded py-1.5",
+      className:
+        "bg-slate-700 text-white w-52 cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
     },
   ],
 };

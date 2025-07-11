@@ -67,11 +67,11 @@ const FormField = ({
     disabled: !fieldState.isEnable,
     autoComplete: "off",
     className: cn(
-      "w-full py-2.5 px-3 border rounded-lg outline-none",
-      hasError ? "border-orange-500" : "border-[#6CA8A0]",
+      "w-full py-2.5 px-3 border rounded outline-none text-white",
+      hasError ? "border-rose-600" : "border-slate-700",
       !fieldState.isEnable
         ? "bg-gray-100 cursor-not-allowed disabled:text-gray-500 disabled:border-gray-100"
-        : "bg-gray-100",
+        : "bg-slate-800 hover:bg-slate-900 transition-colors",
       formSchema?.inputClassName,
       formSchema.sections[sectionIndex]?.inputClassName,
       formSchema.sections[sectionIndex].fields[fieldName].inputClassName
@@ -98,10 +98,14 @@ const FormField = ({
         <span
           className={cn(
             `block w-1.5 h-1.5 bg-[#6CA8A0] rounded-full`,
-            { "bg-red-500": hasError },
-            { "bg-orange-400": isRequired },
+            { "bg-amber-600": isRequired },
+            { "bg-rose-600": hasError },
             { "bg-gray-400": !fieldState.isEnable },
-            { "bg-[#6CA8A0]!": isRequired && formData?.[fieldName] || formData[arrayName!]?.[indexArray!]?.[fieldName!] },
+            {
+              "bg-emerald-600!":
+                (isRequired && formData?.[fieldName]) ||
+                formData[arrayName!]?.[indexArray!]?.[fieldName!],
+            },
             { "bg-gray-400": fieldSchema.type === "readonly" }
           )}
         ></span>
@@ -112,8 +116,8 @@ const FormField = ({
           <span
             className={cn(
               {
-                "text-red-500": hasError,
-                "text-[#545A61]": !hasError,
+                "text-rose-600": hasError,
+                "text-slate-300": !hasError,
                 "text-lg": fieldSchema.type === "readonly",
               },
               formSchema?.labelClassName,
@@ -124,7 +128,7 @@ const FormField = ({
             {fieldSchema.label}
           </span>
 
-          {isRequired && <span className="text-red-500 pt-2.5 pr-1.5">*</span>}
+          {isRequired && <span className="text-rose-600 pt-2.5 pr-1.5">*</span>}
         </label>
       </div>
 

@@ -89,22 +89,23 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
   return (
     <div>
       <ErrorMessage errorKey={`section.${index}`} />
-      <div className="grid grid-cols-12 gap-x-8 gap-y-4 border border-gray-200 rounded-2xl px-3 pb-8 mb-4">
-        <div className="mx-2 py-3 mt-1 px-2 border-dashed border-b border-b-gray-300 col-span-12">
+      <div className="bg-slate-900 grid grid-cols-12 gap-x-8 gap-y-4 border border-slate-700 rounded-2xl px-3 pb-8 mb-4">
+        <div className="mx-2 py-3 mt-1 px-2 border-dashed border-b border-b-slate-800 col-span-12">
           <div className="flex gap-x-2">
             <span
               className={cn(
                 `text-white pt-1 flex justify-center items-center w-6 h-6 rounded-full font-far2 text-xs`,
-                { "bg-[#6CA8A0]": !hasError },
-                { "bg-orange-500": formNotFill },
-                { "bg-red-500": hasError }
+                { "bg-emerald-600": !hasError },
+                { "bg-zinc-600": formNotFill },
+                { "bg-rose-600": hasError }
               )}
             >
-              {formSchema.formIndex}.{index + 1}
+              {Number(formSchema.formIndex).toLocaleString("fa")}.
+              {Number(index + 1).toLocaleString("fa")}
             </span>
-            <h2 className="text-xl text-[#343434]">{section.title}</h2>
+            <h2 className="text-xl text-slate-100">{section.title}</h2>
           </div>
-          <p className="text-sm text-[#78808B] mr-8">{section.subTitle}</p>
+          <p className="text-sm text-slate-300 mr-8">{section.subTitle}</p>
         </div>
 
         {Object.keys(section.fields).map((fieldName) => (
