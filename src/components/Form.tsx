@@ -120,15 +120,15 @@ export const formSchema: IFormSchema = {
           label: "ارسال فرم",
           submitterKey: "SUBMIT",
           type: "submit",
-          validateFields: "ALL",
+          validateFields: "SECTION",
           className:
             "bg-slate-700 w-52  text-white  cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
         },
       ],
     },
     {
-      // arrayName: "accountBanksItems",
-      // isArray: true,
+      arrayName: "accountBanksItems",
+      isArray: true,
       title: "لیست حساب های بانکی",
       subTitle:
         "مشتری گرامی لطفا لیست حساب های بانکی خود را در فرم زیر وارد کنید",
@@ -208,17 +208,27 @@ export const formSchema: IFormSchema = {
           ],
         },
       },
+      actionButtons: [
+        {
+          label: "اضافه کردن",
+          submitterKey: "APPEND",
+          type: "submit",
+          validateFields: "SECTION",
+          className:
+            "bg-green-700 text-white w-52 cursor-pointer transition-all hover:bg-green-800 rounded py-2",
+        },
+      ],
     },
   ],
   defaultValue: {
-    // accountBanksItems: [
-    //   {
-    //     bank_id:1,
-    //     account_type:2,
-    //     account_number:"",
-    //     iban_number:""
-    //   }
-    // ],
+    accountBanksItems: [
+      {
+        bank_id: 1,
+        account_type: 2,
+        account_number: "",
+        iban_number: "",
+      },
+    ],
   },
   formPath: "",
   formIndex: 1,
@@ -231,6 +241,13 @@ export const formSchema: IFormSchema = {
       validateFields: "ALL",
       className:
         "bg-slate-700 text-white w-52 cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
+    },
+    {
+      label: "پاک کردن فرم",
+      submitterKey: "SUBMIT",
+      type: "reset",
+      className:
+        "bg-rose-700 text-white w-52 cursor-pointer transition-all hover:bg-rose-800 rounded py-2",
     },
   ],
 };

@@ -13,6 +13,7 @@ import {
 } from "./types";
 import { formSchema } from "./components/Form";
 import useServices from "./hooks/useServices";
+import clsx from "clsx";
 interface FormContextType {
   //-
   formData: Record<string, any>;
@@ -158,12 +159,18 @@ const FormProvider = ({ children }: FormProviderProps) => {
       });
     }
 
-    const defaultValues = formSchema.defaultValue;
+    const defaultValues: Record<string, any> = formSchema.defaultValue || {};
     const initialFormData = { ...formData };
 
     formSchema.sections.forEach((section) => {
-      if (section.isArray && section.arrayName && section.defaultItems) {
-        if (!initialFormData[section.arrayName]) {
+      if (section.isArray && section.arrayName) {
+        const emptyItems = Object.keys(section.fields).reduce(
+          (acc, cur) => ({ ...acc, [cur]: "" }),
+          {}
+        );
+        defaultValues[section.arrayName] = [{ ...emptyItems }];
+        console.log(defaultValues);
+        if (!initialFormData[section.arrayName] && section.defaultItems) {
           initialFormData[section.arrayName] = [...section.defaultItems];
         }
       }
@@ -179,7 +186,6 @@ const FormProvider = ({ children }: FormProviderProps) => {
     arrayName?: string,
     indexArray?: number
   ) => {
-
     if (inArray && arrayName) {
       const arrayList = [...formData[arrayName]];
       arrayList[indexArray!][fieldName] = value;
@@ -219,12 +225,29 @@ const FormProvider = ({ children }: FormProviderProps) => {
     sectionIndex?: number
   ) => {
     e.preventDefault();
-    console.log(formData)
-    console.log(errors)
-    if (isValidForm(validateFields, sectionIndex)) {
-      console.log(formData)
+
+    const target = e.nativeEvent.target as HTMLElement;
+    const arrayIndex = Number(target?.dataset?.arrayIndex);
+    const arrayName = target?.dataset?.arrayName;
+    const action = target?.dataset?.action;
+
+    if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
+      if (action === "APPEND" && arrayName) {
+        const sec = formSchema.sections.find(
+          (sec) => sec.arrayName === arrayName
+        )?.fields;
+        const emptyItems = Object.keys(sec).reduce(
+          (acc, cur) => ({ ...acc, [cur]: "" }),
+          {}
+        );
+
+        setFormData((prev) => ({
+          ...prev,
+          [arrayName]: [{ ...emptyItems }, ...prev[arrayName]],
+        }));
+      }
     } else {
-      // Handle form validation errors
+      console.log("error", errors);
     }
   };
 

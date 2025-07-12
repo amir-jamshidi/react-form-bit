@@ -27,17 +27,25 @@ const useValidation = ({
     formData
 }: IuseValidation) => {
 
-    const getAllFieldsWidthStruct = (): Record<string, IField> => {
-        const allFields = formSchema.sections.map(sec => {
-            if (sec.isArray) {
-                const fields = formData[sec.arrayName].reduce((acc, cur) => [...acc, { ...sec.fields }], [])
-                return {
-                    [sec.arrayName]: fields
+    const getAllFieldsWidthStruct = (arrayName?: string): Record<string, IField> => {
+        let allFields = [];
+        if (arrayName) {
+            const sec = formSchema.sections.find(sec => sec.arrayName === arrayName);
+            const fields = formData[arrayName].reduce((acc, cur) => [...acc, { ...sec.fields }], [])
+            allFields = [{ [arrayName]: fields }]
+
+        } else {
+            allFields = formSchema.sections.map(sec => {
+                if (sec.isArray) {
+                    const fields = formData[sec.arrayName].reduce((acc, cur) => [...acc, { ...sec.fields }], [])
+                    return {
+                        [sec.arrayName]: fields
+                    }
                 }
+                return sec.fields
             }
-            return sec.fields
+            );
         }
-        );
 
         return mergeArrayObjects(allFields);
     };
@@ -121,7 +129,8 @@ const useValidation = ({
         currentFormData: Record<string, any>,
         inArray?: boolean,
         arrayName?: string,
-        indexArray?: number
+        indexArray?: number,
+        targetIndexArray?: number
     ): boolean => {
 
         const fields = getAllFields();
@@ -129,9 +138,8 @@ const useValidation = ({
         const validations = fieldSchema.validations || [];
 
         if (inArray && arrayName) {
-
+            if (targetIndexArray !== undefined && targetIndexArray !== indexArray) return true;
             let fieldErrors: string[] = [];
-
             validations.forEach(validate => {
                 const error = ValidatorEngine.validate(validate, value, currentFormData?.[arrayName!]?.[indexArray!]);
                 if (error) {
@@ -196,7 +204,7 @@ const useValidation = ({
         return fieldErrors.length === 0;
     };
 
-    const isValidForm = (fieldsToValidate: 'ALL' | "SECTION" | string[], sectionIndex?: number): boolean => {
+    const isValidForm = (fieldsToValidate: 'ALL' | "SECTION" | string[], sectionIndex?: number, arrayIndex?: number, arrayName?: string): boolean => {
         let isValid = true;
         const newTouched: Record<string, boolean> = {};
         const allFields = getAllFields();
@@ -207,8 +215,12 @@ const useValidation = ({
             fields = getAllFieldsWidthStruct();
         }
 
-        if (fieldsToValidate === 'SECTION' && sectionIndex !== undefined) {
+        if (fieldsToValidate === 'SECTION' && sectionIndex !== undefined && !arrayName) {
             fields = formSchema.sections[sectionIndex].fields;
+        }
+
+        if (fieldsToValidate === 'SECTION' && sectionIndex !== undefined && arrayIndex !== undefined && arrayName) {
+            fields = getAllFieldsWidthStruct(arrayName);
         }
 
         if (Array.isArray(fieldsToValidate)) {
@@ -220,7 +232,7 @@ const useValidation = ({
             return fields
         });
 
-        let isFieldValid;
+        let isFieldValid: boolean = true;
         Object.entries(fields).forEach(([fieldName, value], i) => {
             if (Array.isArray(value)) {
                 value.forEach((fieldValue, i) => {
@@ -232,14 +244,15 @@ const useValidation = ({
                             formData,
                             true,
                             fieldName,
-                            i
+                            i,
+                            arrayName ? arrayIndex : undefined
                         );
+                        if (!isFieldValid) isValid = false
+                        console.log(isFieldValid)
                     })
                 })
                 return
-            }
-
-            newTouched[fieldName] = true;
+            } newTouched[fieldName] = true;
             isFieldValid = validationAndUpdateErrors(
                 fieldName,
                 formData[fieldName],

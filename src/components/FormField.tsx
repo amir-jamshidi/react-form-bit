@@ -48,7 +48,7 @@ const FormField = ({
 
   // Common props for input elements
   const commonPropsInputs = {
-    id: fieldName,
+    id: `${fieldName}${indexArray !== undefined ? indexArray : ""}`,
     name: fieldName,
     placeholder: fieldSchema.placeholder,
     value: inArray
@@ -110,7 +110,7 @@ const FormField = ({
           )}
         ></span>
         <label
-          htmlFor={fieldName}
+          htmlFor={`${fieldName}${indexArray !== undefined ? indexArray : ""}`}
           className="text-right font-normal text-[#545A61] flex justify-center items-center"
         >
           <span
