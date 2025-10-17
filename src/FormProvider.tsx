@@ -1,8 +1,10 @@
 import { createContext, ReactNode, useContext, useEffect } from "react";
+import { formSchema } from "./components/Form";
 import useFormState from "./hooks/useFormState";
-import useValidation from "./hooks/useValidation";
 import useGlobalErrors from "./hooks/useGlobalErrors";
 import useResetForm from "./hooks/useResetForm";
+import useServices from "./hooks/useServices";
+import useValidation from "./hooks/useValidation";
 import {
   IConditionProps,
   IField,
@@ -11,9 +13,6 @@ import {
   IRemoteSelectOptions,
   ISection,
 } from "./types";
-import { formSchema } from "./components/Form";
-import useServices from "./hooks/useServices";
-import clsx from "clsx";
 interface FormContextType {
   //-
   formData: Record<string, any>;
@@ -231,6 +230,8 @@ const FormProvider = ({ children }: FormProviderProps) => {
     const arrayName = target?.dataset?.arrayName;
     const action = target?.dataset?.action;
 
+    isValidForm(validateFields, sectionIndex, arrayIndex, arrayName);
+    return;
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
       if (action === "APPEND" && arrayName) {
         const sec = formSchema.sections.find(

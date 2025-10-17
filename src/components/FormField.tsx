@@ -46,7 +46,6 @@ const FormField = ({
     return null;
   }
 
-  // Common props for input elements
   const commonPropsInputs = {
     id: `${fieldName}${indexArray !== undefined ? indexArray : ""}`,
     name: fieldName,

@@ -55,6 +55,8 @@ export const formSchema: IFormSchema = {
       subTitle: "مشتری گرامی لطفا مشخصات فردی خود را در فرم زیر وارد نمایید.",
       fields: {
         firstname: {
+          resetValueFields: "SECTION",
+          resetErrorFields: "SECTION",
           label: "نام شما",
           type: "input",
           placeholder: "لطفا نام خود را وارد کنید",
@@ -128,12 +130,14 @@ export const formSchema: IFormSchema = {
     },
     {
       arrayName: "accountBanksItems",
-      isArray: true,
+      // isArray: true,
       title: "لیست حساب های بانکی",
       subTitle:
         "مشتری گرامی لطفا لیست حساب های بانکی خود را در فرم زیر وارد کنید",
       fields: {
         bank_id: {
+          // resetErrorFields: ["account_type", "account_number", "iban_number"],
+          // resetValueFields: ["account_type", "account_number", "iban_number"],
           label: "نام بانک",
           type: "select",
           options: [
@@ -238,7 +242,7 @@ export const formSchema: IFormSchema = {
       label: "تایید و مرحله بعد",
       submitterKey: "SUBMIT",
       type: "submit",
-      validateFields: "ALL",
+      validateFields: ["nationalId"],
       className:
         "bg-slate-700 text-white w-52 cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
     },
