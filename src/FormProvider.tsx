@@ -235,7 +235,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
     const action = target?.dataset?.action;
 
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
-      console.log(formData);
+      // console.log(formData);
     }
     return;
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
@@ -254,7 +254,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
         }));
       }
     } else {
-      console.log("error", errors);
+      // console.log("error", errors);
     }
   };
 

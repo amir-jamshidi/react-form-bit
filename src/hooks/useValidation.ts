@@ -25,6 +25,21 @@ const useValidation = ({
     formData
 }: IuseValidation) => {
 
+    //* ---------------------------------------------------- Array Form ---------------------------------------------
+
+    //! HELPER FN
+    const getArrayFields = () => {
+        const allFields = formSchema.sections.map(sec => sec.isArray ? sec.fields : {});
+        return mergeArrayObjects(allFields);
+    }
+
+    const getSectionArrayFields = ({ sectionIndex }: { sectionIndex: number }) => {
+        const allFields = [formSchema.sections[sectionIndex].fields];
+        return mergeArrayObjects(allFields);
+    }
+
+
+    //* ---------------------------------------------------- Normal Form ---------------------------------------------
 
     //! HELPER FN
     const mergeArrayObjects = <T extends Record<string, any>>(arr: T[]): T => {
@@ -39,11 +54,6 @@ const useValidation = ({
         const allFields = formSchema.sections.map(sec => sec.fields);
         return mergeArrayObjects(allFields);
     };
-
-    const getArrayFields = () => {
-        const allFields = formSchema.sections.map(sec => sec.isArray ? sec.fields : {});
-        return mergeArrayObjects(allFields);
-    }
 
     //! HELPER FN
     const getSomeFields = ({ fieldsKey }: { fieldsKey: string[] }) => {
@@ -105,6 +115,19 @@ const useValidation = ({
     const isValidForm = (fieldsToValidate: string, sectionIndex?: number, arrayIndex?: number, arrayName?: string): boolean => {
 
         const hasArraySection = formSchema.sections.some(section => Boolean(section.isArray))
+
+        // console.log(
+        //     `fieldsToValidate=> ${fieldsToValidate} \n`,
+        //     `sectionIndex=> ${sectionIndex} \n`,
+        //     `arrayIndex=> ${arrayIndex} \n`,
+        //     `arrayName=> ${arrayName} \n`
+        // )
+
+        if (fieldsToValidate === 'SECTION' && sectionIndex !== undefined && sectionIndex >= 0 && arrayIndex !== undefined && arrayIndex >= 0 && arrayName) {
+            return ValidateArrayFormSection({ arrayName, formIndex: arrayIndex, sectionIndex })
+        }
+
+
         if (hasArraySection && fieldsToValidate === 'ALL') {
             ValidateArrayForm();
             ValidateAllForm();
@@ -121,6 +144,7 @@ const useValidation = ({
 
     //* ---------------------- Array Validator ----------------------------
 
+    //! VALIDATE ALL ARRAY FORMS
     const ValidateArrayForm = (): boolean => {
         const fieldsSchema = getArrayFields();
         const arrayNames = [...new Set(Object.values(fieldsSchema).map(schema => schema.parentArrayName))];
@@ -155,6 +179,35 @@ const useValidation = ({
         return Object.keys(errors).length === 0;
     };
 
+    //! VALIDATE ONE INDEX OF ONE SECTION ARRAY FORM
+    const ValidateArrayFormSection = ({ sectionIndex, arrayName, formIndex }: { sectionIndex: number, arrayName: string, formIndex: number }): boolean => {
+
+        const fieldsSchema = getSectionArrayFields({ sectionIndex })
+        const errors: Record<string, Record<string, any>[]> = {};
+        let hasError = false
+        errors[arrayName] = [];
+
+        Object.keys(formData[arrayName][formIndex]).forEach(fieldName => {
+            const fieldErrors = validateAndUpdateArrayForms({
+                fieldName,
+                fieldSchema: fieldsSchema[fieldName],
+                arrayName,
+                formIndex
+            });
+
+            if (fieldErrors) {
+                if (fieldErrors[fieldName].length > 0) hasError = true
+                errors[arrayName][formIndex] = {
+                    ...errors[arrayName][formIndex],
+                    ...fieldErrors
+                };
+            }
+        });
+
+        setErrors(errors as any);
+        return !hasError
+    }
+
 
     //* ---------------------- Normal Validator ----------------------------
 
@@ -174,12 +227,15 @@ const useValidation = ({
 
     //! VALIDATE ONE FORM SECTION AND TRIGGER validateAndUpdateNormalForm()
     const ValidateSectionForm = ({ sectionIndex }: { sectionIndex: number }): boolean => {
+        console.log("RUN...")
         let errors = {}
         const fieldsSchema = getAllFields({ sectionIndex });
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
-            if (fieldError) {
+            if (Object.keys(fieldError).length > 0) {
                 errors = { ...errors, ...fieldError }
+            } else {
+                errors = { ...errors, [fieldName]: [] }
             }
         })
         const outherFieldsErrorReset = getEmptyErrors({ skipFields: Object.keys(fieldsSchema) })

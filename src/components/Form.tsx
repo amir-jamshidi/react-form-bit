@@ -49,18 +49,6 @@ export default Form;
 export const formSchema: IFormSchema = {
   title: "فرم حساب های بانکی مشتری",
   subTitle: "لطفا اطلاعات حساب های بانکی خود را در فرم های زیر وارد کنید",
-  defaultValue: {
-    usersList: [
-      {
-        name: "1",
-        age: "2",
-      },
-      {
-        name: "1",
-        age: "2",
-      },
-    ],
-  },
   sections: [
     {
       title: "مشخصات فردی",
@@ -226,12 +214,12 @@ export const formSchema: IFormSchema = {
       },
       actionButtons: [
         {
-          label: "اضافه کردن",
-          submitterKey: "APPEND",
+          label: "ارسال فرم",
+          submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "SECTION",
           className:
-            "bg-green-700 text-white w-52 cursor-pointer transition-all hover:bg-green-800 rounded py-2",
+            "bg-slate-700 w-52  text-white  cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
         },
       ],
     },
@@ -276,6 +264,16 @@ export const formSchema: IFormSchema = {
           ],
         },
       },
+      actionButtons: [
+        {
+          label: "اضافه کردن",
+          submitterKey: "APPEND",
+          type: "submit",
+          validateFields: "SECTION",
+          className:
+            "bg-green-700 text-white w-52 cursor-pointer transition-all hover:bg-green-800 rounded py-2",
+        },
+      ],
     },
   ],
   formPath: "",
