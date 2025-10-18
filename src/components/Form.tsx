@@ -49,6 +49,18 @@ export default Form;
 export const formSchema: IFormSchema = {
   title: "فرم حساب های بانکی مشتری",
   subTitle: "لطفا اطلاعات حساب های بانکی خود را در فرم های زیر وارد کنید",
+  defaultValue: {
+    usersList: [
+      {
+        name: "1",
+        age: "2",
+      },
+      {
+        name: "1",
+        age: "2",
+      },
+    ],
+  },
   sections: [
     {
       title: "مشخصات فردی",
@@ -223,17 +235,49 @@ export const formSchema: IFormSchema = {
         },
       ],
     },
-  ],
-  defaultValue: {
-    accountBanksItems: [
-      {
-        bank_id: 1,
-        account_type: 2,
-        account_number: "",
-        iban_number: "",
+    {
+      arrayName: "usersList",
+      isArray: true,
+      title: "لیست حساب های بانکی",
+      subTitle:
+        "مشتری گرامی لطفا لیست حساب های بانکی خود را در فرم زیر وارد کنید",
+      fields: {
+        name: {
+          parentArrayName: "usersList",
+          label: "نام کاربر",
+          placeholder: "نام کاربر",
+          type: "text",
+          validations: [
+            {
+              required: true,
+              message: "وارد کردن نام اجباریه داداش",
+            },
+            {
+              rules: [
+                {
+                  operator: "length",
+                  value: 3,
+                  message: "نام حداقل باید 3 کاراکتر باشه",
+                },
+              ],
+            },
+          ],
+        },
+        age: {
+          parentArrayName: "usersList",
+          label: "سن کاربر",
+          placeholder: "سن کاربر",
+          type: "text",
+          validations: [
+            {
+              required: true,
+              message: "وارد سن کاربر اجباریه داداش",
+            },
+          ],
+        },
       },
-    ],
-  },
+    },
+  ],
   formPath: "",
   formIndex: 1,
   globalValidation: [],
@@ -242,7 +286,7 @@ export const formSchema: IFormSchema = {
       label: "تایید و مرحله بعد",
       submitterKey: "SUBMIT",
       type: "submit",
-      validateFields: ["nationalId"],
+      validateFields: "ALL",
       className:
         "bg-slate-700 text-white w-52 cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
     },

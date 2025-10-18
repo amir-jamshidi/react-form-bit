@@ -40,6 +40,11 @@ const useValidation = ({
         return mergeArrayObjects(allFields);
     };
 
+    const getArrayFields = () => {
+        const allFields = formSchema.sections.map(sec => sec.isArray ? sec.fields : {});
+        return mergeArrayObjects(allFields);
+    }
+
     //! HELPER FN
     const getSomeFields = ({ fieldsKey }: { fieldsKey: string[] }) => {
         return fieldsKey.reduce((accumulator: Record<string, any | undefined>, fieldKey: string) => {
@@ -60,25 +65,98 @@ const useValidation = ({
         );
     }
 
+    //! HELPER FN => CALC ERRORS - SPLIT ARRAY AND NORMAL ERROR FIELDS
+    const separateArrayErrors = ({
+        fields,
+        errors
+    }: {
+        fields: Record<string, IField>,
+        errors: Record<string, string[]>
+    }) => {
+        const result: Record<string, any> = {};
+        const arrayErrors: Record<string, Record<string, string[]>> = {};
+
+        Object.keys(fields).forEach(fieldName => {
+            const field = fields[fieldName];
+            const fieldErrors = errors[fieldName] || [];
+
+            if (field.parentArrayName) {
+
+                if (!arrayErrors[field.parentArrayName]) {
+                    arrayErrors[field.parentArrayName] = {};
+                }
+
+                arrayErrors[field.parentArrayName][fieldName] = fieldErrors;
+            } else {
+                result[fieldName] = fieldErrors;
+            }
+        });
+
+        Object.keys(arrayErrors).forEach(arrayName => {
+            result[arrayName] = arrayErrors[arrayName];
+        });
+        console.log(result)
+        return result;
+    };
+
     //* -------------------------------------------------------------------------------------------------
 
     //! MAIN FUNCTION FOR VALIDATON => ENTRY POINT
     const isValidForm = (fieldsToValidate: string, sectionIndex?: number, arrayIndex?: number, arrayName?: string): boolean => {
-        console.log(
-            `FieldsToValidate => ${fieldsToValidate} \n`,
-            `sectionIndex => ${sectionIndex} \n`,
-            `arrayIndex => ${arrayIndex} \n`,
-            `arrayName => ${arrayName} \n`,
-        )
-        setErrors({})
+
+        const hasArraySection = formSchema.sections.some(section => Boolean(section.isArray))
+        if (hasArraySection && fieldsToValidate === 'ALL') {
+            ValidateArrayForm();
+            ValidateAllForm();
+        }
+
 
         if (fieldsToValidate === 'ALL') return ValidateAllForm();
         if (fieldsToValidate === "SECTION" && sectionIndex !== undefined && sectionIndex >= 0) return ValidateSectionForm({ sectionIndex })
-        if (Array.isArray(fieldsToValidate)) ValidateSomeFields({ fieldsKey: fieldsToValidate })
+        if (Array.isArray(fieldsToValidate)) return ValidateSomeFields({ fieldsKey: fieldsToValidate })
 
         return true
-
     }
+
+
+    //* ---------------------- Array Validator ----------------------------
+
+    const ValidateArrayForm = (): boolean => {
+        const fieldsSchema = getArrayFields();
+        const arrayNames = [...new Set(Object.values(fieldsSchema).map(schema => schema.parentArrayName))];
+        const errors: Record<string, Record<string, any>[]> = {};
+
+        arrayNames.forEach(arrayName => {
+            errors[arrayName] = [];
+
+            formData[arrayName]?.forEach((formObject: any, formIndex: number) => {
+                errors[arrayName][formIndex] = errors[arrayName][formIndex] || {};
+
+                Object.keys(formObject).forEach(fieldName => {
+                    const fieldErrors = validateAndUpdateArrayForms({
+                        fieldName,
+                        fieldSchema: fieldsSchema[fieldName],
+                        arrayName,
+                        formIndex
+                    });
+
+                    if (fieldErrors) {
+                        errors[arrayName][formIndex] = {
+                            ...errors[arrayName][formIndex],
+                            ...fieldErrors
+                        };
+                    }
+                });
+            });
+        });
+
+        console.log(errors)
+        setErrors(errors as any);
+        return Object.keys(errors).length === 0;
+    };
+
+
+    //* ---------------------- Normal Validator ----------------------------
 
     //! VALIDATE ALL FORM FIELDS AND TRIGGER validateAndUpdateNormalForm()
     const ValidateAllForm = (): boolean => {
@@ -106,12 +184,13 @@ const useValidation = ({
         })
         const outherFieldsErrorReset = getEmptyErrors({ skipFields: Object.keys(fieldsSchema) })
         setErrors(prevErrors => ({ ...prevErrors, ...errors, ...outherFieldsErrorReset, }))
-        return Boolean(Object.keys(errors).length)
+        return !Boolean(Object.keys(errors).length > 0)
     }
 
     //! VALIDATE SOME FORM FIELDS AND TRIGGER validateAndUpdateNormalForm()
     const ValidateSomeFields = ({ fieldsKey }: { fieldsKey: string[] }): boolean => {
         const fieldsSchema = getSomeFields({ fieldsKey })
+        let errors = {}
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
             if (fieldError) {
@@ -120,7 +199,7 @@ const useValidation = ({
         })
         const outherFieldsErrorReset = getEmptyErrors({ skipFields: fieldsKey })
         setErrors(prevErrors => ({ ...prevErrors, ...errors, ...outherFieldsErrorReset, }))
-        return Boolean(Object.keys(errors).length)
+        return !Boolean(Object.keys(errors).length > 0)
     }
 
 
@@ -139,8 +218,24 @@ const useValidation = ({
         return errors
     }
 
+    //* CHECK VALIDATIONS FOR ARRAYS FROM AND RETURN ERRORS
+    const validateAndUpdateArrayForms = ({ fieldSchema, fieldName, arrayName, formIndex }: { fieldSchema: any, fieldName: string, arrayName: string, formIndex: number }) => {
+        const errors: Record<string, string[]> = {}
+        const validations = fieldSchema.validations;
+        const fieldValue = formData[arrayName][formIndex][fieldName] || ''
+        validations.forEach((validation: IValidation) => {
+            const fieldErrors = ValidatorEngine.validate(validation, fieldValue, formData)
+            if (fieldErrors) {
+                errors[fieldName] = fieldErrors
+            }
+        })
 
+        if (!errors[fieldName]) {
+            errors[fieldName] = []
+        }
 
+        return errors
+    }
 
 
 

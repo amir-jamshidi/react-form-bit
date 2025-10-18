@@ -174,6 +174,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
         }
       }
     });
+    //! RESET ARRAY FORMS - PROBLEM
     setFormData({ ...formData, ...initialFormData, ...defaultValues });
   }, []);
 
@@ -191,21 +192,23 @@ const FormProvider = ({ children }: FormProviderProps) => {
       const newFormData = { ...formData, [arrayName]: arrayList };
       setFormData(newFormData);
       if (true) {
-        validationAndUpdateErrors(
-          fieldName,
-          value,
-          newFormData,
-          inArray,
-          arrayName,
-          indexArray
-        );
+        console.log("run ....");
+        // validationAndUpdateErrors(
+        //   fieldName,
+        //   value,
+        //   newFormData,
+        //   inArray,
+        //   arrayName,
+        //   indexArray
+        // );
       }
     } else {
       const fieldNames = handleResetForm({ sectionIndex, fieldName });
       const newFormData = { ...formData, ...fieldNames, [fieldName]: value };
       setFormData(newFormData);
       if (touched[fieldName]) {
-        validationAndUpdateErrors(fieldName, value, newFormData);
+        console.log("run ...");
+        // validationAndUpdateErrors(fieldName, value, newFormData);
       }
     }
   };
@@ -215,7 +218,8 @@ const FormProvider = ({ children }: FormProviderProps) => {
       ...prev,
       [fieldName]: true,
     }));
-    validationAndUpdateErrors(fieldName, formData[fieldName], formData);
+    console.log("on blur ...");
+    // validationAndUpdateErrors(fieldName, formData[fieldName], formData);
   };
 
   const handleSubmit = (
@@ -230,7 +234,9 @@ const FormProvider = ({ children }: FormProviderProps) => {
     const arrayName = target?.dataset?.arrayName;
     const action = target?.dataset?.action;
 
-    isValidForm(validateFields, sectionIndex, arrayIndex, arrayName);
+    if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
+      console.log(formData);
+    }
     return;
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
       if (action === "APPEND" && arrayName) {
