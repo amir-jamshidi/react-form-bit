@@ -75,6 +75,11 @@ const useValidation = ({
         );
     }
 
+    //! HELPER FN => GET ONE FIELD SCHEMA
+    const getOneFieldSchema = ({ fieldName }: { fieldName: string }) => {
+        return getAllFields({})[fieldName]
+    }
+
     //! HELPER FN => CALC ERRORS - SPLIT ARRAY AND NORMAL ERROR FIELDS
     const separateArrayErrors = ({
         fields,
@@ -151,8 +156,8 @@ const useValidation = ({
         const errors: Record<string, Record<string, any>[]> = {};
 
         arrayNames.forEach(arrayName => {
+            if (!arrayName) throw new Error("ERROR TO READ ARRAY NAMES")
             errors[arrayName] = [];
-
             formData[arrayName]?.forEach((formObject: any, formIndex: number) => {
                 errors[arrayName][formIndex] = errors[arrayName][formIndex] || {};
 
@@ -213,6 +218,7 @@ const useValidation = ({
 
     //! VALIDATE ALL FORM FIELDS AND TRIGGER validateAndUpdateNormalForm()
     const ValidateAllForm = (): boolean => {
+        let touchedFields: Record<string, boolean> = {}
         let errors = {}
         const fieldsSchema = getAllFields({});
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
@@ -220,14 +226,16 @@ const useValidation = ({
             if (fieldError) {
                 errors = { ...errors, ...fieldError }
             }
+            touchedFields[fieldName] = true
         })
+        setTouched(prevToucheds => ({ ...prevToucheds, ...touchedFields }))
         setErrors(prevErrors => ({ ...prevErrors, ...errors }))
         return Boolean(Object.keys(errors).length)
     }
 
     //! VALIDATE ONE FORM SECTION AND TRIGGER validateAndUpdateNormalForm()
     const ValidateSectionForm = ({ sectionIndex }: { sectionIndex: number }): boolean => {
-        console.log("RUN...")
+        let touchedFields: Record<string, boolean> = {}
         let errors = {}
         const fieldsSchema = getAllFields({ sectionIndex });
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
@@ -237,27 +245,51 @@ const useValidation = ({
             } else {
                 errors = { ...errors, [fieldName]: [] }
             }
+            touchedFields[fieldName] = true
         })
         const outherFieldsErrorReset = getEmptyErrors({ skipFields: Object.keys(fieldsSchema) })
+        setTouched(prevToucheds => ({ ...prevToucheds, ...touchedFields }))
         setErrors(prevErrors => ({ ...prevErrors, ...errors, ...outherFieldsErrorReset, }))
         return !Boolean(Object.keys(errors).length > 0)
     }
 
     //! VALIDATE SOME FORM FIELDS AND TRIGGER validateAndUpdateNormalForm()
     const ValidateSomeFields = ({ fieldsKey }: { fieldsKey: string[] }): boolean => {
-        const fieldsSchema = getSomeFields({ fieldsKey })
+        let touchedFields: Record<string, boolean> = {}
         let errors = {}
+        const fieldsSchema = getSomeFields({ fieldsKey })
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
             if (fieldError) {
                 errors = { ...errors, ...fieldError }
             }
+            touchedFields[fieldName] = true
         })
         const outherFieldsErrorReset = getEmptyErrors({ skipFields: fieldsKey })
+        setTouched(prevToucheds => ({ ...prevToucheds, ...touchedFields }))
         setErrors(prevErrors => ({ ...prevErrors, ...errors, ...outherFieldsErrorReset, }))
         return !Boolean(Object.keys(errors).length > 0)
     }
 
+    //* CHECK VALIDATION ON BLUR
+    const validateSingleField = ({ fieldName, fieldValue: value }: { fieldName: string, fieldValue?: string }) => {
+        const errors: Record<string, string[]> = {}
+        const validations = getOneFieldSchema({ fieldName }).validations;
+        const fieldValue = value != undefined ? value : formData[fieldName]
+        if (!validations) return
+
+        errors[fieldName] = []
+        validations?.forEach((validation: IValidation) => {
+            const fieldErrors = ValidatorEngine.validate(validation, fieldValue, formData)
+            if (fieldErrors) {
+                errors[fieldName] = fieldErrors
+            } else {
+                errors[fieldName] = [...errors[fieldName]]
+            }
+        })
+        console.log(errors, 'errors')
+        setErrors(prev => ({ ...prev, ...errors }))
+    }
 
     //* CHECK VALIDATIONS AND RETURN ERRORS
     const validateAndUpdateNormalForm = ({ fieldSchema, fieldName }: { fieldSchema: any, fieldName: string }) => {
@@ -433,6 +465,7 @@ const useValidation = ({
     return {
         checkFieldsState,
         // validationAndUpdateErrors,
+        validateSingleField,
         isValidForm,
         isFieldRequired,
         handleSelectOption

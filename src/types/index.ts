@@ -81,6 +81,7 @@ export interface IField {
     type: string;
     cols?: number;
     labelCols?: number;
+    parentArrayName?: string,
     inputCols?: number;
     placeholder?: string;
     options?: SelectOptions;

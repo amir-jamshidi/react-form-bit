@@ -96,7 +96,8 @@ const FormProvider = ({ children }: FormProviderProps) => {
 
   const {
     checkFieldsState,
-    validationAndUpdateErrors,
+    // validationAndUpdateErrors,
+    validateSingleField,
     isFieldRequired,
     isValidForm,
     handleSelectOption,
@@ -207,7 +208,9 @@ const FormProvider = ({ children }: FormProviderProps) => {
       const newFormData = { ...formData, ...fieldNames, [fieldName]: value };
       setFormData(newFormData);
       if (touched[fieldName]) {
-        console.log("run ...");
+        // console.log(value, "valueeeeeeeeeeeee");
+        validateSingleField({ fieldName, fieldValue: value });
+        // console.log("run this ...");
         // validationAndUpdateErrors(fieldName, value, newFormData);
       }
     }
@@ -218,8 +221,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
       ...prev,
       [fieldName]: true,
     }));
-    console.log("on blur ...");
-    // validationAndUpdateErrors(fieldName, formData[fieldName], formData);
+    validateSingleField({ fieldName });
   };
 
   const handleSubmit = (
@@ -237,7 +239,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
       // console.log(formData);
     }
-    return;
+    // return;
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
       if (action === "APPEND" && arrayName) {
         const sec = formSchema.sections.find(
