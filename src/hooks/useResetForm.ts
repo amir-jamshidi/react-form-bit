@@ -1,7 +1,8 @@
 import { IField, IFormSchema } from "../types";
+import { TErrorsType } from "./useFormState";
 
 interface IUseResetForm {
-    setErrors: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+    setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>;
     formSchema: IFormSchema;
     formData: Record<string, any>;
 }

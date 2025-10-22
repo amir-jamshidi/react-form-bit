@@ -1,12 +1,13 @@
 import { IFieldState, IFormSchema, ISection, IValidation } from "../types";
 import ValidatorEngine from "../utils/ValidatorEngine";
+import { TErrorsType } from "./useFormState";
 
 interface IuseGlobalErrors {
     formSchema: IFormSchema,
-    setErrors: React.Dispatch<React.SetStateAction<Record<string, string[]>>>
+    setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>
     formData: Record<string, any>,
-    setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>,
-    errors: Record<string, string[]>,
+    setFormData: React.Dispatch<React.SetStateAction<TErrorsType>>,
+    errors: TErrorsType,
     fieldStates: Record<string, IFieldState>,
     setFieldStates: React.Dispatch<React.SetStateAction<Record<string, IFieldState>>>
 }

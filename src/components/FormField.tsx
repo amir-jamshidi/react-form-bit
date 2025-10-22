@@ -37,9 +37,13 @@ const FormField = ({
     isVisible: true,
     isEnable: true,
   };
-  const hasError = inArray
-    ? errors?.[arrayName!]?.[indexArray!]?.[fieldName!]?.length > 0
-    : errors[fieldName]?.length > 0;
+
+  const hasError =
+    arrayName && indexArray && Array.isArray(errors?.[arrayName])
+      ? (errors[arrayName] as Record<string, string[]>[])?.[indexArray]?.[
+          fieldName
+        ]?.length > 0
+      : (errors[fieldName] as string[])?.length > 0;
   const isRequired = isFieldRequired(fieldSchema, formData);
 
   if (!fieldState?.isVisible) {
@@ -154,14 +158,17 @@ const FormField = ({
             {!inArray
               ? errors[fieldName].map((error, index) => (
                   <p className="text-red-500 text-xs mt-1" key={index}>
-                    {error}
+                    {error as string}
                   </p>
                 ))
-              : errors[arrayName][indexArray][fieldName].map((error, index) => (
-                  <p className="text-red-500 text-xs mt-1" key={index}>
-                    {error}
-                  </p>
-                ))}
+              : //@ts-expect-error
+                errors[arrayName]?.[indexArray]?.[fieldName!]?.map(
+                  (error: string, index: number) => (
+                    <p className="text-red-500 text-xs mt-1" key={index}>
+                      {error}
+                    </p>
+                  )
+                )}
           </div>
         </>
       )}

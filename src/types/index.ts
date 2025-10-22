@@ -1,3 +1,4 @@
+import { TErrorsType } from "../hooks/useFormState";
 import ValidatorEngine from "../utils/ValidatorEngine";
 
 // Validation rule interface
@@ -37,8 +38,8 @@ export interface ICustomValidate {
     (
         formData: Record<string, any> | Record<string, any[]>, // Support nested array data
         setFormData: React.Dispatch<React.SetStateAction<Record<string, any> | Record<string, any[]>>>,
-        errors: Record<string, string[] | Record<string, string[] | Record<string, string[]>>>, // Support nested errors
-        setErrors: React.Dispatch<React.SetStateAction<Record<string, string[] | Record<string, string[] | Record<string, string[]>>>>>,
+        errors: TErrorsType, //Support nested errors
+        setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>,
         fieldStates: Record<string, IFieldState>,
         setFieldStates: React.Dispatch<React.SetStateAction<Record<string, IFieldState>>>
     ): string | null;

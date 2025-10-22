@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect } from "react";
 import { formSchema } from "./components/Form";
-import useFormState from "./hooks/useFormState";
+import useFormState, { TErrorsType } from "./hooks/useFormState";
 import useGlobalErrors from "./hooks/useGlobalErrors";
 import useResetForm from "./hooks/useResetForm";
 import useServices from "./hooks/useServices";
@@ -16,12 +16,12 @@ import {
 interface FormContextType {
   //-
   formData: Record<string, any>;
-  errors: Record<string, string[]>;
+  errors: TErrorsType;
   touched: Record<string, boolean>;
   fieldStates: Record<string, IFieldState>;
   remoteOptions: Record<string, { label: string; value: any }[]>;
   setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
-  setErrors: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+  setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>;
   setFieldStates: React.Dispatch<
     React.SetStateAction<Record<string, IFieldState>>
   >;
@@ -96,7 +96,6 @@ const FormProvider = ({ children }: FormProviderProps) => {
 
   const {
     checkFieldsState,
-    // validationAndUpdateErrors,
     validateSingleField,
     isFieldRequired,
     isValidForm,
@@ -208,10 +207,7 @@ const FormProvider = ({ children }: FormProviderProps) => {
       const newFormData = { ...formData, ...fieldNames, [fieldName]: value };
       setFormData(newFormData);
       if (touched[fieldName]) {
-        // console.log(value, "valueeeeeeeeeeeee");
         validateSingleField({ fieldName, fieldValue: value });
-        // console.log("run this ...");
-        // validationAndUpdateErrors(fieldName, value, newFormData);
       }
     }
   };
@@ -234,29 +230,10 @@ const FormProvider = ({ children }: FormProviderProps) => {
     const target = e.nativeEvent.target as HTMLElement;
     const arrayIndex = Number(target?.dataset?.arrayIndex);
     const arrayName = target?.dataset?.arrayName;
-    const action = target?.dataset?.action;
+    // const action = target?.dataset?.action;
 
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
-      // console.log(formData);
-    }
-    // return;
-    if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
-      if (action === "APPEND" && arrayName) {
-        const sec = formSchema.sections.find(
-          (sec) => sec.arrayName === arrayName
-        )?.fields;
-        const emptyItems = Object.keys(sec).reduce(
-          (acc, cur) => ({ ...acc, [cur]: "" }),
-          {}
-        );
-
-        setFormData((prev) => ({
-          ...prev,
-          [arrayName]: [{ ...emptyItems }, ...prev[arrayName]],
-        }));
-      }
-    } else {
-      // console.log("error", errors);
+      console.log(`Call Submit Fn ... \n `, formData);
     }
   };
 
@@ -322,8 +299,6 @@ const FormProvider = ({ children }: FormProviderProps) => {
     remoteOptions,
     setRemoteOptions,
   };
-
-  // console.log(formData, "formData");
 
   return (
     <FormContext.Provider value={contextValue}>{children}</FormContext.Provider>

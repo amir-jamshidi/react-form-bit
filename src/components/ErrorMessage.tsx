@@ -31,7 +31,7 @@ const ErrorMessage = ({ errorKey }: IErrorMessageProps) => {
         {errors[errorKey]?.map((error, i) => (
           <div key={i} className="flex items-center text-red-500 gap-x-1">
             <span className="w-1.5 h-1.5 block bg-red-500 rounded-full"></span>
-            <p className="text-base text-red-500">{error}</p>
+            <p className="text-base text-red-500">{error as string}</p>
           </div>
         ))}
       </div>
