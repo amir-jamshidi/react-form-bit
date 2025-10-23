@@ -978,17 +978,18 @@ const handleSubmit = (data, submitterKey) => {
 Here's a complete form schema showcasing various features:
 
 ```typescript
-const registrationSchema = {
+export const refisterForm: IFormSchema = {
   title: "User Registration",
   subTitle: "Create your account",
   formIndex: 1,
   formPath: "",
   defaultValue: {
-    accountType: "personal"
+    accountType: "personal",
   },
   sections: [
     {
       title: "Account Information",
+      subTitle: "information",
       fields: {
         accountType: {
           label: "Account Type",
@@ -997,14 +998,14 @@ const registrationSchema = {
           resetErrorFields: "SECTION",
           options: [
             { label: "Personal", value: "personal" },
-            { label: "Business", value: "business" }
+            { label: "Business", value: "business" },
           ],
           validations: [
             {
               required: true,
-              message: "Please select account type"
-            }
-          ]
+              message: "Please select account type",
+            },
+          ],
         },
         email: {
           label: "Email Address",
@@ -1013,17 +1014,18 @@ const registrationSchema = {
           validations: [
             {
               required: true,
-              message: "Email is required"
+              message: "Email is required",
             },
             {
               rules: [
                 {
+                  value: "",
                   operator: "isEmail",
-                  message: "Please enter a valid email"
-                }
-              ]
-            }
-          ]
+                  message: "Please enter a valid email",
+                },
+              ],
+            },
+          ],
         },
         companyName: {
           label: "Company Name",
@@ -1036,18 +1038,18 @@ const registrationSchema = {
               when: {
                 field: "accountType",
                 operator: "equals",
-                value: "business"
-              }
-            }
+                value: "business",
+              },
+            },
           ],
           isDisable: {
             when: {
               field: "accountType",
               operator: "equals",
-              value: "personal"
-            }
-          }
-        }
+              value: "personal",
+            },
+          },
+        },
       },
       actionButtons: [
         {
@@ -1055,12 +1057,13 @@ const registrationSchema = {
           submitterKey: "CONTINUE",
           type: "submit",
           validateFields: "SECTION",
-          className: "bg-blue-500 text-white px-6 py-2 rounded"
-        }
-      ]
+          className: "bg-blue-500 text-white px-6 py-2 rounded",
+        },
+      ],
     },
     {
       title: "Personal Details",
+      subTitle: "details",
       fields: {
         firstName: {
           label: "First Name",
@@ -1069,18 +1072,18 @@ const registrationSchema = {
           validations: [
             {
               required: true,
-              message: "First name is required"
+              message: "First name is required",
             },
             {
               rules: [
                 {
                   operator: "minLength",
                   value: 2,
-                  message: "Name must be at least 2 characters"
-                }
-              ]
-            }
-          ]
+                  message: "Name must be at least 2 characters",
+                },
+              ],
+            },
+          ],
         },
         lastName: {
           label: "Last Name",
@@ -1089,9 +1092,9 @@ const registrationSchema = {
           validations: [
             {
               required: true,
-              message: "Last name is required"
-            }
-          ]
+              message: "Last name is required",
+            },
+          ],
         },
         country: {
           label: "Country",
@@ -1101,14 +1104,14 @@ const registrationSchema = {
             endPointUrl: "https://api.example.com/countries",
             path: "data",
             labelNameKey: "name",
-            valueNameKey: "code"
+            valueNameKey: "code",
           },
           validations: [
             {
               required: true,
-              message: "Please select a country"
-            }
-          ]
+              message: "Please select a country",
+            },
+          ],
         },
         state: {
           label: "State",
@@ -1118,26 +1121,24 @@ const registrationSchema = {
             path: "data",
             labelNameKey: "name",
             valueNameKey: "code",
-            dependencies: [
-              { field: "country", key: "countryCode" }
-            ],
-            sendMethod: "SEARCHPARAMS"
+            dependencies: [{ field: "country", key: "countryCode" }],
+            sendMethod: "SEARCHPARAMS",
           },
           validations: [
             {
               required: true,
-              message: "Please select a state"
-            }
+              message: "Please select a state",
+            },
           ],
           isDisable: {
             when: {
               field: "country",
-              operator: "isFalsy"
-            }
-          }
-        }
-      ]
-    }
+              operator: "isFalsy",
+            },
+          },
+        },
+      },
+    },
   ],
   actionButtons: [
     {
@@ -1145,15 +1146,15 @@ const registrationSchema = {
       submitterKey: "SUBMIT",
       type: "submit",
       validateFields: "ALL",
-      className: "bg-green-500 text-white px-6 py-2 rounded"
+      className: "bg-green-500 text-white px-6 py-2 rounded",
     },
     {
       label: "Reset Form",
       submitterKey: "RESET",
       type: "reset",
-      className: "bg-red-500 text-white px-6 py-2 rounded"
-    }
-  ]
+      className: "bg-red-500 text-white px-6 py-2 rounded",
+    },
+  ],
 };
 ```
 
