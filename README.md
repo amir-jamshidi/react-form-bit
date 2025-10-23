@@ -83,12 +83,6 @@ The ultimate developer experience:
 - Forms that need to adapt based on user input
 - Any scenario where form fields have complex relationships
 
-## Quick Example
-
-```javascript
-// Coming soon in the next section
-```
-
 ---
 
 **Ready to revolutionize your form development?** Let's get started with installation and basic usage.
