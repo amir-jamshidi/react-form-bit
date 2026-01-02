@@ -1,4 +1,4 @@
-import { useForm } from "../FormProvider";
+import FormProvider, { useForm } from "../FormProvider";
 import { IFormSchema } from "../types";
 import { cn } from "../utils/cn";
 import ErrorMessage from "./ErrorMessage";
@@ -6,7 +6,15 @@ import FormDebug from "./FormDebug";
 import FormHeader from "./FormHeader";
 import FormSection from "./FormSection";
 
-function Form() {
+export const Form = () => {
+  return (
+    <FormProvider>
+      <FormGen />
+    </FormProvider>
+  );
+};
+
+function FormGen() {
   const { handleSubmit, handleClearForm } = useForm();
 
   return (

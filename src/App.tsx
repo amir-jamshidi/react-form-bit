@@ -1,14 +1,8 @@
-import Form from "./components/Form"
-import FormProvider from "./FormProvider"
+import Form from "./components/Form";
 
 const App = () => {
+  return <Form />;
+};
 
-  return (
-    <FormProvider>
-      <Form />
-    </FormProvider>
-  )
-
-}
-
-export default App
+export default App;
+  
