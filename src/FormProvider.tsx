@@ -1,5 +1,4 @@
 import { createContext, ReactNode, useContext, useEffect } from "react";
-import { formSchema } from "./components/Form";
 import useFormState, { TErrorsType } from "./hooks/useFormState";
 import useGlobalErrors from "./hooks/useGlobalErrors";
 import useResetForm from "./hooks/useResetForm";
@@ -73,13 +72,25 @@ const FormContext = createContext<FormContextType | null>(null);
 
 interface FormProviderProps {
   children: ReactNode;
+  formSchema: IFormSchema;
+  onSubmit: ({
+    formData,
+    sectionIndex,
+  }: {
+    formData: any;
+    sectionIndex?: number;
+  }) => void;
 }
 
 const getAllFields = (sections: ISection[]): Record<string, IField> => {
   return sections.reduce((prev, cur) => ({ ...prev, ...cur.fields }), {});
 };
 
-const FormProvider = ({ children }: FormProviderProps) => {
+const FormProvider = ({
+  children,
+  formSchema,
+  onSubmit,
+}: FormProviderProps) => {
   const formStates = useFormState();
   const {
     formData,
@@ -168,7 +179,6 @@ const FormProvider = ({ children }: FormProviderProps) => {
           {}
         );
         defaultValues[section.arrayName] = [{ ...emptyItems }];
-        console.log(defaultValues);
         if (!initialFormData[section.arrayName] && section.defaultItems) {
           initialFormData[section.arrayName] = [...section.defaultItems];
         }
@@ -192,7 +202,6 @@ const FormProvider = ({ children }: FormProviderProps) => {
       const newFormData = { ...formData, [arrayName]: arrayList };
       setFormData(newFormData);
       if (true) {
-        console.log("run ....");
         // validationAndUpdateErrors(
         //   fieldName,
         //   value,
@@ -231,9 +240,8 @@ const FormProvider = ({ children }: FormProviderProps) => {
     const arrayIndex = Number(target?.dataset?.arrayIndex);
     const arrayName = target?.dataset?.arrayName;
     // const action = target?.dataset?.action;
-
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
-      console.log(`Call Submit Fn ... \n `, formData);
+      onSubmit({ formData, sectionIndex });
     }
   };
 

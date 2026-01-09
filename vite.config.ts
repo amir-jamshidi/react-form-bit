@@ -41,7 +41,8 @@ export default defineConfig(({ mode }) => {
         },
         cssCodeSplit: false,
         sourcemap: false,
-        emptyOutDir: true
+        emptyOutDir: true,
+        minify: "esbuild"
       }
     })
   }

@@ -85,23 +85,14 @@ const useValidation = ({
 
         const hasArraySection = formSchema.sections.some(section => Boolean(section.isArray))
 
-        // console.log(
-        //     `fieldsToValidate=> ${fieldsToValidate} \n`,
-        //     `sectionIndex=> ${sectionIndex} \n`,
-        //     `arrayIndex=> ${arrayIndex} \n`,
-        //     `arrayName=> ${arrayName} \n`
-        // )
-
         if (fieldsToValidate === 'SECTION' && sectionIndex !== undefined && sectionIndex >= 0 && arrayIndex !== undefined && arrayIndex >= 0 && arrayName) {
             return ValidateArrayFormSection({ arrayName, formIndex: arrayIndex, sectionIndex })
         }
-
 
         if (hasArraySection && fieldsToValidate === 'ALL') {
             ValidateArrayForm();
             ValidateAllForm();
         }
-
 
         if (fieldsToValidate === 'ALL') return ValidateAllForm();
         if (fieldsToValidate === "SECTION" && sectionIndex !== undefined && sectionIndex >= 0) return ValidateSectionForm({ sectionIndex })
@@ -194,7 +185,7 @@ const useValidation = ({
         })
         setTouched(prevToucheds => ({ ...prevToucheds, ...touchedFields }))
         setErrors(prevErrors => ({ ...prevErrors, ...errors }))
-        return Boolean(Object.keys(errors).length)
+        return !Boolean(Object.keys(errors).length)
     }
 
     //! VALIDATE ONE FORM SECTION AND TRIGGER validateAndUpdateNormalForm()
@@ -207,7 +198,7 @@ const useValidation = ({
             if (Object.keys(fieldError).length > 0) {
                 errors = { ...errors, ...fieldError }
             } else {
-                errors = { ...errors, [fieldName]: [] }
+                errors = { ...errors }
             }
             touchedFields[fieldName] = true
         })
@@ -251,7 +242,6 @@ const useValidation = ({
                 errors[fieldName] = [...errors[fieldName]]
             }
         })
-        console.log(errors, 'errors')
         setErrors(prev => ({ ...prev, ...errors }))
     }
 
