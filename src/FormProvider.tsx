@@ -145,9 +145,9 @@ const FormProvider = ({
 
   useEffect(() => {
     const newFieldStates = checkFieldsState(formData);
-    setFieldStates(newFieldStates);
-    validateGlobalErrors();
-    validateSectionsGlobalErrors();
+    // setFieldStates(newFieldStates);
+    // validateGlobalErrors();
+    // validateSectionsGlobalErrors();
 
     Object.keys(newFieldStates).forEach((fieldName) => {
       if (
