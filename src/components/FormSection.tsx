@@ -3,6 +3,7 @@ import { ISection } from "../types";
 import { cn } from "../utils/cn";
 import ErrorMessage from "./ErrorMessage";
 import FormField from "./FormField";
+import type { MouseEvent } from "react";
 
 interface IFormSectionProps {
   section: ISection;
@@ -29,26 +30,30 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
   });
 
   if (section.isArray && section.arrayName) {
-    //console.log(formFields, " =>formFields");
-    const arrayList = formData?.[section.arrayName];
+    const arrayName = section.arrayName;
+    const arrayList = formData?.[arrayName] as
+      | Record<string, unknown>[]
+      | undefined;
+    const arrayErrors = errors[arrayName] as
+      | Record<string, string[]>[]
+      | undefined;
 
     return (
       <>
-        {arrayList?.map((fields, i) => {
+        {arrayList?.map((_item, i) => {
+          const rowErrors = arrayErrors?.[i] ?? {};
           const hasError = formFields.some(
-            (field) => errors?.[section.arrayName]?.[i]?.[field]?.length > 0
+            (field) => (rowErrors[field]?.length ?? 0) > 0
           );
           const formNotFill = formFields.some((fieldName) => {
             const fieldSchema = section.fields[fieldName];
             return (
-              isFieldRequired(
-                fieldSchema,
-                formData?.[section?.arrayName]?.[i]
-              ) && !formData[section.arrayName]?.[i]?.[fieldName]
+              isFieldRequired(fieldSchema, formData?.[arrayName]?.[i]) &&
+              !formData[arrayName]?.[i]?.[fieldName]
             );
           });
           return (
-            <div>
+            <div key={`${arrayName}-${i}`}>
               <ErrorMessage errorKey={`section.${index}`} />
               <div className="bg-slate-900 grid grid-cols-12 gap-x-8 gap-y-4 border border-slate-700 rounded-2xl px-3 pb-8 mb-4">
                 <div className="mx-2 py-3 mt-1 px-2 border-dashed border-b border-b-slate-800 col-span-12">
@@ -92,12 +97,12 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                 {section.actionButtons?.length! > 0 && (
                   <div className="flex justify-center items-center mt-12 col-span-12 gap-x-2">
                     {section.actionButtons?.map((actionBtn, idx) => (
-                      <button
-                        data-action={actionBtn.submitterKey}
-                        data-array-index={i}
-                        data-array-name={section.arrayName}
-                        key={idx}
-                        onClick={(e) =>
+                    <button
+                      data-action={actionBtn.submitterKey}
+                      data-array-index={i}
+                      data-array-name={arrayName}
+                      key={idx}
+                      onClick={(e: MouseEvent<HTMLButtonElement>) =>
                           actionBtn.type === "submit"
                             ? handleSubmit(
                                 e,
@@ -153,9 +158,9 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
         {section.actionButtons?.length! > 0 && (
           <div className="flex justify-center items-center mt-12 col-span-12 gap-x-2">
             {section.actionButtons?.map((actionBtn, idx) => (
-              <button
+                <button
                 key={idx}
-                onClick={(e) =>
+                onClick={(e: MouseEvent<HTMLButtonElement>) =>
                   actionBtn.type === "submit"
                     ? handleSubmit(e, actionBtn.validateFields || "ALL", index)
                     : handleClearForm(index)

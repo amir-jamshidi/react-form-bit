@@ -1,4 +1,13 @@
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import {
+  createContext,
+  createElement,
+  type Dispatch,
+  type FormEvent,
+  type ReactNode,
+  type SetStateAction,
+  useContext,
+  useEffect,
+} from "react";
 import useFormState, { TErrorsType } from "./hooks/useFormState";
 import useGlobalErrors from "./hooks/useGlobalErrors";
 import useResetForm from "./hooks/useResetForm";
@@ -19,14 +28,12 @@ interface FormContextType {
   touched: Record<string, boolean>;
   fieldStates: Record<string, IFieldState>;
   remoteOptions: Record<string, { label: string; value: any }[]>;
-  setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
-  setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>;
-  setFieldStates: React.Dispatch<
-    React.SetStateAction<Record<string, IFieldState>>
-  >;
-  setTouched: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-  setRemoteOptions: React.Dispatch<
-    React.SetStateAction<Record<string, { label: string; value: any }[]>>
+  setFormData: Dispatch<SetStateAction<Record<string, any>>>;
+  setErrors: Dispatch<SetStateAction<TErrorsType>>;
+  setFieldStates: Dispatch<SetStateAction<Record<string, IFieldState>>>;
+  setTouched: Dispatch<SetStateAction<Record<string, boolean>>>;
+  setRemoteOptions: Dispatch<
+    SetStateAction<Record<string, { label: string; value: any }[]>>
   >;
 
   // --
@@ -40,7 +47,7 @@ interface FormContextType {
   ) => void;
   handleOnBlur: (fieldName: string) => void;
   handleSubmit: (
-    e: React.FormEvent,
+    e: FormEvent,
     validateFields: "ALL" | "SECTION" | string[],
     sectionIndex?: number
   ) => void;
@@ -122,16 +129,16 @@ const FormProvider = ({
     setTouched,
   });
 
-  const { validateGlobalErrors, validateSectionsGlobalErrors } =
-    useGlobalErrors({
-      errors,
-      fieldStates,
-      formData,
-      formSchema,
-      setErrors,
-      setFieldStates,
-      setFormData,
-    });
+  const globalErrors = useGlobalErrors({
+    errors,
+    fieldStates,
+    formData,
+    formSchema,
+    setErrors,
+    setFieldStates,
+    setFormData,
+  });
+  void globalErrors;
 
   const { handleResetForm } = useResetForm({
     formData,
@@ -139,7 +146,7 @@ const FormProvider = ({
     setErrors,
   });
 
-  const { getRemoteDefaultValue, UseGetRemoteOptions } = useServices({
+  const { UseGetRemoteOptions } = useServices({
     setFormData,
   });
 
@@ -159,34 +166,54 @@ const FormProvider = ({
         setFormData((prev) => ({ ...prev, [fieldName]: "" }));
       }
     });
-  }, [formStates.formData]);
+  }, [checkFieldsState, formData, formSchema.sections, setFormData]);
 
   useEffect(() => {
-    if (formSchema?.remoteDefaultValue?.endPointUrl) {
-      getRemoteDefaultValue({
-        endPointUrl: formSchema.remoteDefaultValue.endPointUrl,
-        path: formSchema.remoteDefaultValue.path,
-      });
-    }
+    const applyDefaults = async () => {
+      if (formSchema?.remoteDefaultValue?.endPointUrl) {
+        try {
+          const response = await fetch(formSchema.remoteDefaultValue.endPointUrl);
+          const result = await response.json();
+          const defaultValue = formSchema.remoteDefaultValue.path
+            ? formSchema.remoteDefaultValue.path
+                .split(".")
+                .reduce((prev: any, cur) => prev[cur], result)
+            : result;
 
-    const defaultValues: Record<string, any> = formSchema.defaultValue || {};
-    const initialFormData = { ...formData };
-
-    formSchema.sections.forEach((section) => {
-      if (section.isArray && section.arrayName) {
-        const emptyItems = Object.keys(section.fields).reduce(
-          (acc, cur) => ({ ...acc, [cur]: "" }),
-          {}
-        );
-        defaultValues[section.arrayName] = [{ ...emptyItems }];
-        if (!initialFormData[section.arrayName] && section.defaultItems) {
-          initialFormData[section.arrayName] = [...section.defaultItems];
+          setFormData((prev) => ({ ...prev, ...defaultValue }));
+        } catch {
+          // Keep local defaults if remote default loading fails.
         }
       }
-    });
-    //! RESET ARRAY FORMS - PROBLEM
-    setFormData({ ...formData, ...initialFormData, ...defaultValues });
-  }, []);
+
+      const defaultValues: Record<string, any> = formSchema.defaultValue || {};
+      const initialFormData = { ...formData };
+
+      formSchema.sections.forEach((section) => {
+        if (section.isArray && section.arrayName) {
+          const emptyItems = Object.keys(section.fields).reduce(
+            (acc, cur) => ({ ...acc, [cur]: "" }),
+            {}
+          );
+          defaultValues[section.arrayName] = [{ ...emptyItems }];
+          if (!initialFormData[section.arrayName] && section.defaultItems) {
+            initialFormData[section.arrayName] = [...section.defaultItems];
+          }
+        }
+      });
+
+      setFormData({ ...formData, ...initialFormData, ...defaultValues });
+    };
+
+    void applyDefaults();
+  }, [
+    formData,
+    formSchema.defaultValue,
+    formSchema.remoteDefaultValue?.endPointUrl,
+    formSchema.remoteDefaultValue?.path,
+    formSchema.sections,
+    setFormData,
+  ]);
 
   const handleChange = (
     fieldName: string,
@@ -230,7 +257,7 @@ const FormProvider = ({
   };
 
   const handleSubmit = (
-    e: React.FormEvent,
+    e: FormEvent,
     validateFields: "ALL" | "SECTION" | string[],
     sectionIndex?: number
   ) => {
@@ -308,9 +335,7 @@ const FormProvider = ({
     setRemoteOptions,
   };
 
-  return (
-    <FormContext.Provider value={contextValue}>{children}</FormContext.Provider>
-  );
+  return createElement(FormContext.Provider, { value: contextValue }, children);
 };
 
 export const useForm = () => {

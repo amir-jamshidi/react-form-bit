@@ -230,7 +230,7 @@ const useValidation = ({
     const validateSingleField = ({ fieldName, fieldValue: value }: { fieldName: string, fieldValue?: string }) => {
         const errors: Record<string, string[]> = {}
         const validations = getOneFieldSchema({ fieldName }).validations;
-        const fieldValue = value != undefined ? value : formData[fieldName]
+        const fieldValue = value !== undefined ? value : formData[fieldName]
         if (!validations) return
 
         errors[fieldName] = []
@@ -281,14 +281,9 @@ const useValidation = ({
 
 
 
-    const isRequiredField = () => { }
-
     const isFieldRequired = (
         fieldSchema: IField,
-        currentFormData: Record<string, any>,
-        inArray?: boolean,
-        arrayName?: string,
-        indexArray?: number
+        currentFormData: Record<string, any>
     ): boolean => {
 
         if (!fieldSchema.validations) return false;
@@ -327,6 +322,6 @@ const useValidation = ({
 export default useValidation;
 
 
-const checkFieldsState = (currentFormData: Record<string, any>): Record<string, IFieldState> => {
+const checkFieldsState = (_currentFormData: Record<string, any>): Record<string, IFieldState> => {
     return {};
 };

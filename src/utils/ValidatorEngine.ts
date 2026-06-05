@@ -189,7 +189,7 @@ class ValidatorEngine {
                 const dependentValue = formData[field];
 
                 for (const depRule of rules) {
-                    const { operator, value: compareValue, offset, message } = depRule;
+                    const { operator, offset, message } = depRule;
                     if (operator === 'compareWithOffset') {
                         const operatorFunc = this.operators[operator];
                         if (!operatorFunc(value, {

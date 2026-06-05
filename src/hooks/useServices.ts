@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "../FormProvider";
 import { IRemoteDefaultValue, IRemoteSelectOptions } from "../types";
 
@@ -25,26 +25,28 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
         }
     }
 
-    const UseGetRemoteOptions = ({ endPointUrl, labelNameKey, valueNameKey, path, dependencies, sendMethod, fieldName }: IUseGetRemoteOptions) => {
+    const UseGetRemoteOptions = ({ endPointUrl, labelNameKey, valueNameKey, path, dependencies, sendMethod: _sendMethod, fieldName }: IUseGetRemoteOptions) => {
 
         const { formData, remoteOptions: options, setRemoteOptions: setOptions } = useForm()
 
-        const fetchOptions = async () => {
-            if (!endPointUrl) return
+        const fetchOptions = useCallback(async () => {
+            if (!endPointUrl) return;
             if (dependencies && dependencies.length > 0) {
                 const missingDependencies = dependencies.some(
-                    dep => !formData[dep.field]
+                    (dep) => !formData[dep.field]
                 );
 
                 if (missingDependencies) {
-                    setOptions(prev => ({ ...prev, [fieldName]: [] }));
+                    setOptions((prev) => ({ ...prev, [fieldName]: [] }));
                     return;
                 }
             }
 
             try {
                 const searchParams = new URLSearchParams();
-                dependencies?.forEach(dep => searchParams.set(dep.key, formData[dep.field]))
+                dependencies?.forEach((dep) =>
+                    searchParams.set(dep.key, formData[dep.field])
+                );
 
                 let finalEndPoint: string;
                 const query = searchParams.toString();
@@ -52,32 +54,35 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
                 if (!query) {
                     finalEndPoint = endPointUrl;
                 } else {
-                    finalEndPoint = endPointUrl.includes('?') ? `${endPointUrl}&${query}` : `${endPointUrl}?${query}`
+                    finalEndPoint = endPointUrl.includes("?")
+                        ? `${endPointUrl}&${query}`
+                        : `${endPointUrl}?${query}`;
                 }
 
                 const response = await fetch(finalEndPoint);
                 const result = await response.json();
 
                 const finalOptions = path
-                    ? path.split('.').reduce((prev, cur) => prev[cur], result)
+                    ? path.split(".").reduce((prev: any, cur) => prev[cur], result)
                     : result;
 
-                const processedOptions = finalOptions.map((option: Record<string, string>) => ({
-                    value: option[valueNameKey],
-                    label: option[labelNameKey]
-                }));
+                const processedOptions = finalOptions.map(
+                    (option: Record<string, string>) => ({
+                        value: option[valueNameKey],
+                        label: option[labelNameKey],
+                    })
+                );
 
-                setOptions(prev => ({ ...prev, [fieldName]: processedOptions }));
+                setOptions((prev) => ({ ...prev, [fieldName]: processedOptions }));
             } catch (error) {
-                console.error('Error fetching dependent options:', error);
-                setOptions(prev => ({ ...prev, [fieldName]: [] }));
-            } finally {
+                console.error("Error fetching dependent options:", error);
+                setOptions((prev) => ({ ...prev, [fieldName]: [] }));
             }
-        };
+        }, [dependencies, endPointUrl, fieldName, formData, labelNameKey, path, setOptions, valueNameKey]);
 
         useEffect(() => {
             fetchOptions();
-        }, [...(dependencies || []).map(dep => formData[dep.field])])
+        }, [fetchOptions]);
 
         return { options, fetchOptions }
     }

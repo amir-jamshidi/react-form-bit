@@ -5,6 +5,7 @@ import ErrorMessage from "./ErrorMessage";
 import FormDebug from "./FormDebug";
 import FormHeader from "./FormHeader";
 import FormSection from "./FormSection";
+import type { MouseEvent } from "react";
 
 interface IFormProps {
   formSchema: IFormSchema;
@@ -38,7 +39,7 @@ function FormGen({ formSchema }: Pick<IFormProps, "formSchema">) {
             {formSchema.actionButtons.map((actionBtn, idx) => (
               <button
                 key={idx}
-                onClick={(e) =>
+                onClick={(e: MouseEvent<HTMLButtonElement>) =>
                   actionBtn.type === "submit"
                     ? handleSubmit(e, actionBtn.validateFields || "ALL")
                     : handleClearForm()
