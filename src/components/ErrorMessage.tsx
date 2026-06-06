@@ -1,4 +1,5 @@
 import { useForm } from "../FormProvider";
+import type { FormErrorTree } from "../utils/formState";
 
 interface IErrorMessageProps {
   errorKey: string;
@@ -7,7 +8,8 @@ interface IErrorMessageProps {
 const ErrorMessage = ({ errorKey }: IErrorMessageProps) => {
   const { errors } = useForm();
 
-  if (!errors?.[errorKey]?.length) return null;
+  const errorList = errors?.[errorKey] as FormErrorTree[string];
+  if (!Array.isArray(errorList) || !errorList.length) return null;
 
   return (
     <div className="w-full border mb-2 border-gray-200 rounded-2xl flex gap-x-2.5 overflow-hidden">
@@ -28,7 +30,7 @@ const ErrorMessage = ({ errorKey }: IErrorMessageProps) => {
         </svg>
       </div>
       <div className="flex flex-col justify-center py-3">
-        {errors[errorKey]?.map((error, i) => (
+        {errorList.map((error, i) => (
           <div key={i} className="flex items-center text-red-500 gap-x-1">
             <span className="w-1.5 h-1.5 block bg-red-500 rounded-full"></span>
             <p className="text-base text-red-500">{error as string}</p>

@@ -6,7 +6,7 @@ interface IuseGlobalErrors {
     formSchema: IFormSchema,
     setErrors: React.Dispatch<React.SetStateAction<TErrorsType>>
     formData: Record<string, any>,
-    setFormData: React.Dispatch<React.SetStateAction<TErrorsType>>,
+    setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>,
     errors: TErrorsType,
     fieldStates: Record<string, IFieldState>,
     setFieldStates: React.Dispatch<React.SetStateAction<Record<string, IFieldState>>>

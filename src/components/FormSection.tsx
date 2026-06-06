@@ -1,6 +1,7 @@
 import { useForm } from "../FormProvider";
 import { ISection } from "../types";
 import { cn } from "../utils/cn";
+import { getIn } from "../utils/formState";
 import ErrorMessage from "./ErrorMessage";
 import FormField from "./FormField";
 import type { MouseEvent } from "react";
@@ -22,16 +23,18 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
 
   const formFields = Object.keys(section.fields);
 
-  const hasError = formFields.some((field) => errors[field]?.length > 0);
+  const hasError = formFields.some(
+    (field) => Array.isArray(errors[field]) && errors[field]!.length > 0
+  );
 
   const formNotFill = formFields.some((fieldName) => {
     const fieldSchema = section.fields[fieldName];
-    return isFieldRequired(fieldSchema, formData) && !formData[fieldName];
+    return isFieldRequired(fieldSchema, formData) && !getIn(formData, fieldName);
   });
 
   if (section.isArray && section.arrayName) {
     const arrayName = section.arrayName;
-    const arrayList = formData?.[arrayName] as
+    const arrayList = getIn(formData, arrayName) as
       | Record<string, unknown>[]
       | undefined;
     const arrayErrors = errors[arrayName] as
@@ -45,11 +48,12 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
           const hasError = formFields.some(
             (field) => (rowErrors[field]?.length ?? 0) > 0
           );
+          const rowData = getIn(formData, `${arrayName}.${i}`) ?? formData;
           const formNotFill = formFields.some((fieldName) => {
             const fieldSchema = section.fields[fieldName];
             return (
-              isFieldRequired(fieldSchema, formData?.[arrayName]?.[i]) &&
-              !formData[arrayName]?.[i]?.[fieldName]
+              isFieldRequired(fieldSchema, rowData as Record<string, unknown>) &&
+              !getIn(formData, `${arrayName}.${i}.${fieldName}`)
             );
           });
           return (

@@ -1,9 +1,10 @@
 import { useCallback, useEffect } from "react";
 import { useForm } from "../FormProvider";
 import { IRemoteDefaultValue, IRemoteSelectOptions } from "../types";
+import { getIn, type FormValue } from "../utils/formState";
 
 interface IUseServicesProps {
-    setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>,
+    setFormData: React.Dispatch<React.SetStateAction<Record<string, FormValue>>>,
 }
 
 interface IUseGetRemoteOptions extends IRemoteSelectOptions { fieldName: string }
@@ -15,8 +16,10 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
             const defaultValues = await fetch(endPointUrl);
             const result = await defaultValues.json();
             if (path) {
-                const fianlValue = path.split('.').reduce((prev, cur) => prev[cur], result)
-                setFormData(prev => ({ ...prev, ...fianlValue }))
+                const finalValue = getIn(result, path, result);
+                if (finalValue && typeof finalValue === "object") {
+                    setFormData(prev => ({ ...prev, ...(finalValue as Record<string, FormValue>) }))
+                }
                 return
             }
             setFormData(prev => ({ ...prev, ...result }));
@@ -33,7 +36,7 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
             if (!endPointUrl) return;
             if (dependencies && dependencies.length > 0) {
                 const missingDependencies = dependencies.some(
-                    (dep) => !formData[dep.field]
+                    (dep) => !getIn(formData, dep.field)
                 );
 
                 if (missingDependencies) {
@@ -45,7 +48,7 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
             try {
                 const searchParams = new URLSearchParams();
                 dependencies?.forEach((dep) =>
-                    searchParams.set(dep.key, formData[dep.field])
+                    searchParams.set(dep.key, String(getIn(formData, dep.field) ?? ""))
                 );
 
                 let finalEndPoint: string;
@@ -62,16 +65,14 @@ const useServices = ({ setFormData }: IUseServicesProps) => {
                 const response = await fetch(finalEndPoint);
                 const result = await response.json();
 
-                const finalOptions = path
-                    ? path.split(".").reduce((prev: any, cur) => prev[cur], result)
-                    : result;
+                const finalOptions = path ? getIn(result, path, result) : result;
 
-                const processedOptions = finalOptions.map(
-                    (option: Record<string, string>) => ({
-                        value: option[valueNameKey],
-                        label: option[labelNameKey],
-                    })
-                );
+                const processedOptions = Array.isArray(finalOptions)
+                    ? finalOptions.map((option) => ({
+                        value: String((option as Record<string, unknown>)[valueNameKey]),
+                        label: String((option as Record<string, unknown>)[labelNameKey]),
+                    }))
+                    : [];
 
                 setOptions((prev) => ({ ...prev, [fieldName]: processedOptions }));
             } catch (error) {

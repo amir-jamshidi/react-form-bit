@@ -1,6 +1,7 @@
 import { IConditionProps, IField, IFieldState, IFormSchema, IValidation } from "../types";
 import ValidatorEngine from "../utils/ValidatorEngine";
 import { TErrorsType } from "./useFormState";
+import { getAllFields, getFieldSchema, getIn } from "../utils/formState";
 
 
 interface IuseValidation {
@@ -26,38 +27,25 @@ const useValidation = ({
 
     //! HELPER FN
     const getArrayFields = () => {
-        const allFields = formSchema.sections.map(sec => sec.isArray ? sec.fields : {});
-        return mergeArrayObjects(allFields);
+        return formSchema.sections
+            .filter((section) => section.isArray)
+            .reduce<Record<string, IField>>((accumulator, section) => ({
+                ...accumulator,
+                ...section.fields,
+            }), {});
     }
 
     const getSectionArrayFields = ({ sectionIndex }: { sectionIndex: number }) => {
-        const allFields = [formSchema.sections[sectionIndex].fields];
-        return mergeArrayObjects(allFields);
+        return { ...formSchema.sections[sectionIndex].fields };
     }
 
 
     //* ---------------------------------------------------- Normal Form ---------------------------------------------
 
     //! HELPER FN
-    const mergeArrayObjects = <T extends Record<string, any>>(arr: T[]): T => {
-        return arr.reduce((result, obj) => ({ ...result, ...obj }), {} as T);
-    };
-
-    //! HELPER FN
-    const getAllFields = ({ sectionIndex }: { sectionIndex?: number }): Record<string, IField> => {
-        if (sectionIndex !== undefined && sectionIndex >= 0) {
-            return formSchema.sections[sectionIndex].fields;
-        }
-        const allFields = formSchema.sections.map(sec => sec.fields);
-        return mergeArrayObjects(allFields);
-    };
-
-    //! HELPER FN
     const getSomeFields = ({ fieldsKey }: { fieldsKey: string[] }) => {
         return fieldsKey.reduce((accumulator: Record<string, any | undefined>, fieldKey: string) => {
-            const fieldProperties = formSchema.sections.find(section =>
-                section?.fields && section.fields[fieldKey]
-            )?.fields?.[fieldKey];
+            const fieldProperties = getFieldSchema(formSchema, fieldKey);
             accumulator[fieldKey] = fieldProperties ? { ...fieldProperties } : undefined;
             return accumulator;
         }, {});
@@ -71,12 +59,6 @@ const useValidation = ({
                 .map(([key]) => [key, []])
         );
     }
-
-    //! HELPER FN => GET ONE FIELD SCHEMA
-    const getOneFieldSchema = ({ fieldName }: { fieldName: string }) => {
-        return getAllFields({})[fieldName]
-    }
-
 
     //* -------------------------------------------------------------------------------------------------
 
@@ -117,9 +99,11 @@ const useValidation = ({
                 errors[arrayName][formIndex] = errors[arrayName][formIndex] || {};
 
                 Object.keys(formObject).forEach(fieldName => {
+                    const fieldSchema = fieldsSchema[fieldName];
+                    if (!fieldSchema) return;
                     const fieldErrors = validateAndUpdateArrayForms({
                         fieldName,
-                        fieldSchema: fieldsSchema[fieldName],
+                        fieldSchema,
                         arrayName,
                         formIndex
                     });
@@ -148,9 +132,11 @@ const useValidation = ({
         errors[arrayName] = [];
 
         Object.keys(formData[arrayName][formIndex]).forEach(fieldName => {
+            const fieldSchema = fieldsSchema[fieldName];
+            if (!fieldSchema) return;
             const fieldErrors = validateAndUpdateArrayForms({
                 fieldName,
-                fieldSchema: fieldsSchema[fieldName],
+                fieldSchema,
                 arrayName,
                 formIndex
             });
@@ -175,7 +161,7 @@ const useValidation = ({
     const ValidateAllForm = (): boolean => {
         let touchedFields: Record<string, boolean> = {}
         let errors = {}
-        const fieldsSchema = getAllFields({});
+        const fieldsSchema = getAllFields(formSchema.sections);
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
             if (fieldError) {
@@ -192,7 +178,7 @@ const useValidation = ({
     const ValidateSectionForm = ({ sectionIndex }: { sectionIndex: number }): boolean => {
         let touchedFields: Record<string, boolean> = {}
         let errors = {}
-        const fieldsSchema = getAllFields({ sectionIndex });
+        const fieldsSchema = formSchema.sections[sectionIndex].fields;
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
             if (Object.keys(fieldError).length > 0) {
@@ -227,10 +213,10 @@ const useValidation = ({
     }
 
     //* CHECK VALIDATION ON BLUR
-    const validateSingleField = ({ fieldName, fieldValue: value }: { fieldName: string, fieldValue?: string }) => {
+    const validateSingleField = ({ fieldName, fieldValue: value }: { fieldName: string, fieldValue?: unknown }) => {
         const errors: Record<string, string[]> = {}
-        const validations = getOneFieldSchema({ fieldName }).validations;
-        const fieldValue = value !== undefined ? value : formData[fieldName]
+        const validations = getFieldSchema(formSchema, fieldName)?.validations;
+        const fieldValue = value !== undefined ? value : getIn(formData, fieldName)
         if (!validations) return
 
         errors[fieldName] = []
@@ -249,7 +235,11 @@ const useValidation = ({
     const validateAndUpdateNormalForm = ({ fieldSchema, fieldName }: { fieldSchema: any, fieldName: string }) => {
         const errors: Record<string, string[]> = {}
         const validations = fieldSchema.validations;
-        const fieldValue = formData[fieldName] || ''
+        const fieldValue = getIn(formData, fieldName) || ''
+
+        if (!validations) {
+            return errors;
+        }
 
         validations.forEach((validation: IValidation) => {
             const fieldErrors = ValidatorEngine.validate(validation, fieldValue, formData)
@@ -264,7 +254,12 @@ const useValidation = ({
     const validateAndUpdateArrayForms = ({ fieldSchema, fieldName, arrayName, formIndex }: { fieldSchema: any, fieldName: string, arrayName: string, formIndex: number }) => {
         const errors: Record<string, string[]> = {}
         const validations = fieldSchema.validations;
-        const fieldValue = formData[arrayName][formIndex][fieldName] || ''
+        const fieldValue = getIn(formData, `${arrayName}.${formIndex}.${fieldName}`) || ''
+
+        if (!validations) {
+            errors[fieldName] = [];
+            return errors;
+        }
         validations.forEach((validation: IValidation) => {
             const fieldErrors = ValidatorEngine.validate(validation, fieldValue, formData)
             if (fieldErrors) {
@@ -283,7 +278,7 @@ const useValidation = ({
 
     const isFieldRequired = (
         fieldSchema: IField,
-        currentFormData: Record<string, any>
+        currentFormData: Record<string, unknown>
     ): boolean => {
 
         if (!fieldSchema.validations) return false;

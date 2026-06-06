@@ -14,38 +14,50 @@ import useResetForm from "./hooks/useResetForm";
 import useServices from "./hooks/useServices";
 import useValidation from "./hooks/useValidation";
 import {
+  buildInitialFormData,
+  getAllFields,
+  getFieldSchema,
+  getIn,
+  setIn,
+  type FormValue,
+} from "./utils/formState";
+import {
   IConditionProps,
   IField,
   IFieldState,
   IFormSchema,
   IRemoteSelectOptions,
-  ISection,
 } from "./types";
 interface FormContextType {
   //-
-  formData: Record<string, any>;
+  formData: Record<string, FormValue>;
   errors: TErrorsType;
   touched: Record<string, boolean>;
   fieldStates: Record<string, IFieldState>;
-  remoteOptions: Record<string, { label: string; value: any }[]>;
-  setFormData: Dispatch<SetStateAction<Record<string, any>>>;
+  remoteOptions: Record<string, { label: string; value: string }[]>;
+  setFormData: Dispatch<SetStateAction<Record<string, FormValue>>>;
   setErrors: Dispatch<SetStateAction<TErrorsType>>;
   setFieldStates: Dispatch<SetStateAction<Record<string, IFieldState>>>;
   setTouched: Dispatch<SetStateAction<Record<string, boolean>>>;
   setRemoteOptions: Dispatch<
-    SetStateAction<Record<string, { label: string; value: any }[]>>
+    SetStateAction<Record<string, { label: string; value: string }[]>>
   >;
 
   // --
   handleChange: (
     fieldName: string,
-    value: any,
+    value: FormValue,
     sectionIndex: number,
     inArray?: boolean,
     arrayName?: string,
     indexArray?: number
   ) => void;
-  handleOnBlur: (fieldName: string) => void;
+  handleOnBlur: (
+    fieldName: string,
+    inArray?: boolean,
+    arrayName?: string,
+    indexArray?: number
+  ) => void;
   handleSubmit: (
     e: FormEvent,
     validateFields: "ALL" | "SECTION" | string[],
@@ -54,7 +66,7 @@ interface FormContextType {
   // --
   isFieldRequired: (
     field: IField,
-    formData: Record<string, any>,
+    formData: Record<string, unknown>,
     inArray?: boolean,
     arrayName?: string,
     indexArray?: number
@@ -84,14 +96,10 @@ interface FormProviderProps {
     formData,
     sectionIndex,
   }: {
-    formData: any;
+    formData: Record<string, FormValue>;
     sectionIndex?: number;
   }) => void;
 }
-
-const getAllFields = (sections: ISection[]): Record<string, IField> => {
-  return sections.reduce((prev, cur) => ({ ...prev, ...cur.fields }), {});
-};
 
 const FormProvider = ({
   children,
@@ -159,101 +167,81 @@ const FormProvider = ({
     Object.keys(newFieldStates).forEach((fieldName) => {
       if (
         !newFieldStates[fieldName].isEnable &&
-        formData[fieldName] &&
-        (getAllFields(formSchema.sections)[fieldName].resetValueWhenDisable ??
+        getIn(formData, fieldName) &&
+        (getFieldSchema(formSchema, fieldName)?.resetValueWhenDisable ??
           true)
       ) {
         setFormData((prev) => ({ ...prev, [fieldName]: "" }));
       }
     });
-  }, [checkFieldsState, formData, formSchema.sections, setFormData]);
+  }, [checkFieldsState, formData, formSchema, setFormData]);
 
   useEffect(() => {
     const applyDefaults = async () => {
+      let remoteDefaults: Record<string, FormValue> | undefined;
       if (formSchema?.remoteDefaultValue?.endPointUrl) {
         try {
           const response = await fetch(formSchema.remoteDefaultValue.endPointUrl);
           const result = await response.json();
           const defaultValue = formSchema.remoteDefaultValue.path
-            ? formSchema.remoteDefaultValue.path
-                .split(".")
-                .reduce((prev: any, cur) => prev[cur], result)
+            ? getIn(result, formSchema.remoteDefaultValue.path, result)
             : result;
 
-          setFormData((prev) => ({ ...prev, ...defaultValue }));
+          if (defaultValue && typeof defaultValue === "object") {
+            remoteDefaults = defaultValue as Record<string, FormValue>;
+          }
         } catch {
           // Keep local defaults if remote default loading fails.
         }
       }
 
-      const defaultValues: Record<string, any> = formSchema.defaultValue || {};
-      const initialFormData = { ...formData };
-
-      formSchema.sections.forEach((section) => {
-        if (section.isArray && section.arrayName) {
-          const emptyItems = Object.keys(section.fields).reduce(
-            (acc, cur) => ({ ...acc, [cur]: "" }),
-            {}
-          );
-          defaultValues[section.arrayName] = [{ ...emptyItems }];
-          if (!initialFormData[section.arrayName] && section.defaultItems) {
-            initialFormData[section.arrayName] = [...section.defaultItems];
-          }
-        }
-      });
-
-      setFormData({ ...formData, ...initialFormData, ...defaultValues });
+      setFormData((prev) => ({
+        ...prev,
+        ...buildInitialFormData(formSchema, remoteDefaults),
+      }));
     };
 
     void applyDefaults();
   }, [
-    formData,
-    formSchema.defaultValue,
-    formSchema.remoteDefaultValue?.endPointUrl,
-    formSchema.remoteDefaultValue?.path,
-    formSchema.sections,
+    formSchema,
     setFormData,
   ]);
 
   const handleChange = (
     fieldName: string,
-    value: any,
+    value: FormValue,
     sectionIndex: number,
     inArray?: boolean,
     arrayName?: string,
     indexArray?: number
   ) => {
     if (inArray && arrayName) {
-      const arrayList = [...formData[arrayName]];
-      arrayList[indexArray!][fieldName] = value;
-      const newFormData = { ...formData, [arrayName]: arrayList };
-      setFormData(newFormData);
-      if (true) {
-        // validationAndUpdateErrors(
-        //   fieldName,
-        //   value,
-        //   newFormData,
-        //   inArray,
-        //   arrayName,
-        //   indexArray
-        // );
-      }
+      const path = `${arrayName}.${indexArray}.${fieldName}`;
+      setFormData((prev) => setIn(prev, path, value));
     } else {
       const fieldNames = handleResetForm({ sectionIndex, fieldName });
-      const newFormData = { ...formData, ...fieldNames, [fieldName]: value };
-      setFormData(newFormData);
+      setFormData((prev) => ({ ...prev, ...fieldNames, [fieldName]: value }));
       if (touched[fieldName]) {
         validateSingleField({ fieldName, fieldValue: value });
       }
     }
   };
 
-  const handleOnBlur = (fieldName: string) => {
+  const handleOnBlur = (
+    fieldName: string,
+    inArray?: boolean,
+    arrayName?: string,
+    indexArray?: number
+  ) => {
+    const path = inArray && arrayName ? `${arrayName}.${indexArray}.${fieldName}` : fieldName;
     setTouched((prev) => ({
       ...prev,
-      [fieldName]: true,
+      [path]: true,
     }));
-    validateSingleField({ fieldName });
+    validateSingleField({
+      fieldName,
+      fieldValue: inArray && arrayName ? getIn(formData, path) : undefined,
+    });
   };
 
   const handleSubmit = (
@@ -279,11 +267,11 @@ const FormProvider = ({
     );
 
     const isValid = requiredFields.every(
-      (field) => formData?.[field] && !errors?.[field]?.length
+      (field) => getIn(formData, field) && !errors?.[field]?.length
     );
     const hasError = requiredFields.some((field) => errors?.[field]?.length);
     const notFill = requiredFields.some(
-      (field) => !formData[field] && !errors?.[field]?.length
+      (field) => !getIn(formData, field) && !errors?.[field]?.length
     );
 
     if (hasError) return "error";
@@ -302,7 +290,7 @@ const FormProvider = ({
     }
     const fieldNames = Object.keys(formSchema.sections[sectionIndex].fields);
 
-    const formData = fieldNames.reduce(
+    const formData = fieldNames.reduce<Record<string, FormValue>>(
       (prev, cur) => ({ ...prev, [cur]: "" }),
       {}
     );

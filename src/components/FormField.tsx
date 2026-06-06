@@ -1,6 +1,7 @@
 import { useForm } from "../FormProvider";
 import { IField, IOption } from "../types";
 import { cn } from "../utils/cn";
+import { getIn } from "../utils/formState";
 
 interface IFormFieldProps {
   fieldName: string;
@@ -37,27 +38,45 @@ const FormField = ({
     isVisible: true,
     isEnable: true,
   };
+  const arrayErrors =
+    arrayName !== undefined ? errors[arrayName] : undefined;
+  const rowErrors =
+    arrayName !== undefined && indexArray !== undefined && Array.isArray(arrayErrors)
+      ? (arrayErrors[indexArray] as Record<string, string[]> | undefined)
+      : undefined;
 
   const hasError =
-    arrayName && indexArray && Array.isArray(errors?.[arrayName])
-      ? (errors[arrayName] as Record<string, string[]>[])?.[indexArray]?.[
+    arrayName !== undefined &&
+    indexArray !== undefined &&
+    Array.isArray(arrayErrors)
+      ? (arrayErrors as Record<string, string[]>[])?.[indexArray]?.[
           fieldName
         ]?.length > 0
       : (errors[fieldName] as string[])?.length > 0;
+  const errorList =
+    !inArray && Array.isArray(errors[fieldName])
+      ? (errors[fieldName] as string[])
+      : rowErrors && Array.isArray(rowErrors[fieldName])
+        ? (rowErrors[fieldName] as string[])
+        : [];
   const isRequired = isFieldRequired(fieldSchema, formData);
 
   if (!fieldState?.isVisible) {
     return null;
   }
 
+  const fieldPath =
+    inArray && arrayName !== undefined && indexArray !== undefined
+      ? `${arrayName}.${indexArray}.${fieldName}`
+      : fieldName;
+  const fieldValue = getIn(formData, fieldPath);
+
   const commonPropsInputs = {
     id: `${fieldName}${indexArray !== undefined ? indexArray : ""}`,
     name: fieldName,
     placeholder: fieldSchema.placeholder,
-    value: inArray
-      ? formData[arrayName!]?.[indexArray!]?.[fieldName] || ""
-      : formData[fieldName] || "",
-    onChange: (e: any) =>
+    value: String(fieldValue ?? ""),
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       handleChange(
         fieldName,
         e.target.value,
@@ -66,7 +85,7 @@ const FormField = ({
         arrayName,
         indexArray
       ),
-    onBlur: () => handleOnBlur(fieldName),
+    onBlur: () => handleOnBlur(fieldName, inArray, arrayName, indexArray),
     disabled: !fieldState.isEnable,
     autoComplete: "off",
     className: cn(
@@ -105,9 +124,7 @@ const FormField = ({
             { "bg-rose-600": hasError },
             { "bg-gray-400": !fieldState.isEnable },
             {
-              "bg-emerald-600!":
-                (isRequired && formData?.[fieldName]) ||
-                formData[arrayName!]?.[indexArray!]?.[fieldName!],
+              "bg-emerald-600!": Boolean(isRequired && fieldValue),
             },
             { "bg-gray-400": fieldSchema.type === "readonly" }
           )}
@@ -144,7 +161,7 @@ const FormField = ({
           />
         ) : fieldSchema.type === "readonly" ? (
           <p className="text-[#545A61] mt-1 text-lg">
-            {formData?.[fieldName] || "-"}
+            {String(fieldValue ?? "-")}
           </p>
         ) : (
           <input type={fieldSchema.type || "text"} {...commonPropsInputs} />
@@ -155,20 +172,11 @@ const FormField = ({
         <>
           <div className={`col-span-${fieldSchema.labelCols || 5}`}></div>
           <div className={`col-span-${fieldSchema.inputCols || 7}`}>
-            {!inArray
-              ? errors[fieldName].map((error, index) => (
-                  <p className="text-red-500 text-xs mt-1" key={index}>
-                    {error as string}
-                  </p>
-                ))
-              : //@ts-expect-error
-                errors[arrayName]?.[indexArray]?.[fieldName!]?.map(
-                  (error: string, index: number) => (
-                    <p className="text-red-500 text-xs mt-1" key={index}>
-                      {error}
-                    </p>
-                  )
-                )}
+            {errorList.map((error, index) => (
+              <p className="text-red-500 text-xs mt-1" key={index}>
+                {error}
+              </p>
+            ))}
           </div>
         </>
       )}
@@ -184,7 +192,7 @@ const Select = ({
   fieldName,
 }: {
   fieldSchema: IField;
-  commonPropsInputs: Record<string, any>;
+  commonPropsInputs: Record<string, unknown>;
   fieldName: string;
 }) => {
   const { handleSelectOption, UseGetRemoteOptions, remoteOptions } = useForm();

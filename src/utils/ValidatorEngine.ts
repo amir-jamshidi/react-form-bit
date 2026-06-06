@@ -1,3 +1,5 @@
+import { getIn } from "./formState";
+
 interface IOperator {
     (a: any, b: any): boolean;
 }
@@ -133,7 +135,7 @@ class ValidatorEngine {
         }
 
         if (field && operator) {
-            const fieldValue = formData[field];
+            const fieldValue = getIn(formData, field);
             const operatorFn = this.operators[operator];
             return operatorFn?.(fieldValue, value) ?? false;
         }
@@ -186,7 +188,7 @@ class ValidatorEngine {
         if (rule.dependencies) {
             for (const dep of rule.dependencies) {
                 const { field, rules } = dep;
-                const dependentValue = formData[field];
+                const dependentValue = getIn(formData, field);
 
                 for (const depRule of rules) {
                     const { operator, offset, message } = depRule;
