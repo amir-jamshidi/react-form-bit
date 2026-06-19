@@ -222,7 +222,24 @@ const FormProvider = ({
   ) => {
     if (inArray && arrayName) {
       const path = `${arrayName}.${indexArray}.${fieldName}`;
-      setFormData((prev) => setIn(prev, path, value));
+      setFormData((prev) => {
+        const nextFormData = setIn(prev, path, value);
+
+        if (touched[path]) {
+          const rowContext =
+            (getIn(nextFormData, `${arrayName}.${indexArray}`) as
+              | Record<string, unknown>
+              | undefined) ?? {};
+          validateSingleField({
+            fieldName,
+            fieldValue: value,
+            errorPath: path,
+            validationContext: rowContext,
+          });
+        }
+
+        return nextFormData;
+      });
     } else {
       const fieldNames = handleResetForm({ sectionIndex, fieldName });
       setFormData((prev) => ({ ...prev, ...fieldNames, [fieldName]: value }));
@@ -246,6 +263,13 @@ const FormProvider = ({
     validateSingleField({
       fieldName,
       fieldValue: inArray && arrayName ? getIn(formData, path) : undefined,
+      errorPath: inArray && arrayName ? path : undefined,
+      validationContext:
+        inArray && arrayName
+          ? ((getIn(formData, `${arrayName}.${indexArray}`) as
+              | Record<string, unknown>
+              | undefined) ?? {})
+          : undefined,
     });
   };
 

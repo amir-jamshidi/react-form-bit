@@ -1,7 +1,7 @@
 import { IConditionProps, IField, IFieldState, IFormSchema, IValidation } from "../types";
 import ValidatorEngine from "../utils/ValidatorEngine";
 import { TErrorsType } from "./useFormState";
-import { getAllFields, getFieldSchema, getIn } from "../utils/formState";
+import { getAllFields, getFieldSchema, getIn, setIn } from "../utils/formState";
 
 
 interface IuseValidation {
@@ -216,22 +216,39 @@ const useValidation = ({
     }
 
     //* CHECK VALIDATION ON BLUR
-    const validateSingleField = ({ fieldName, fieldValue: value }: { fieldName: string, fieldValue?: unknown }) => {
-        const errors: Record<string, string[]> = {}
+    const validateSingleField = ({
+        fieldName,
+        fieldValue: value,
+        errorPath,
+        validationContext,
+    }: {
+        fieldName: string,
+        fieldValue?: unknown,
+        errorPath?: string,
+        validationContext?: Record<string, unknown>
+    }) => {
         const validations = getFieldSchema(formSchema, fieldName)?.validations;
         const fieldValue = value !== undefined ? value : getIn(formData, fieldName)
+        const context = validationContext ?? formData
         if (!validations) return
 
-        errors[fieldName] = []
+        const resolvedErrorPath = errorPath ?? fieldName
+        let nextFieldErrors: string[] = []
         validations?.forEach((validation: IValidation) => {
-            const fieldErrors = ValidatorEngine.validate(validation, fieldValue, formData)
+            const fieldErrors = ValidatorEngine.validate(validation, fieldValue, context)
             if (fieldErrors) {
-                errors[fieldName] = fieldErrors
+                nextFieldErrors = fieldErrors
             } else {
-                errors[fieldName] = [...errors[fieldName]]
+                nextFieldErrors = [...nextFieldErrors]
             }
         })
-        setErrors(prev => ({ ...prev, ...errors }))
+
+        if (resolvedErrorPath.includes(".")) {
+            setErrors(prev => setIn(prev, resolvedErrorPath, nextFieldErrors) as TErrorsType)
+            return
+        }
+
+        setErrors(prev => ({ ...prev, [resolvedErrorPath]: nextFieldErrors }))
     }
 
     //* CHECK VALIDATIONS AND RETURN ERRORS
