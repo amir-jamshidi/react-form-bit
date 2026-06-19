@@ -3,16 +3,19 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { cn } from "../../utils/cn";
 import FieldMessage from "./FieldMessage";
 import Spinner from "./Spinner";
-import type { UIControlBaseProps } from "./types";
+import {
+  resolveValidationState,
+  type UIControlBaseProps,
+} from "./types";
 
 export interface InputProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size">,
     UIControlBaseProps {
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  showMessage?: boolean;
 }
 
 const Input = ({
@@ -26,24 +29,23 @@ const Input = ({
   disabled,
   startAdornment,
   endAdornment,
+  showMessage = true,
   id,
   ...props
 }: InputProps) => {
   const generatedId = useId();
   const inputId = id || generatedId;
   const messageId = `${inputId}-message`;
-  const state = error && validationState === "default" ? "error" : validationState;
+  const state = resolveValidationState(validationState, error);
 
   return (
-    <div className={cn("rfb-ui-field", className)}>
+    <div className={["rfb-ui-field", className].filter(Boolean).join(" ")}>
       <div
-        className={cn(
-          "rfb-ui-control-shell",
-          `rfb-ui-control-shell--${size}`,
-          `rfb-ui-control-shell--${variant}`,
-          `is-${state}`,
-          (disabled || loading) && "is-disabled"
-        )}
+        className="rfb-ui-control-shell"
+        data-size={size}
+        data-variant={variant}
+        data-state={state}
+        data-disabled={disabled || loading}
       >
         {startAdornment && (
           <span className="rfb-ui-control__adornment">{startAdornment}</span>
@@ -64,7 +66,9 @@ const Input = ({
           )
         )}
       </div>
-      <FieldMessage id={messageId} error={error} hint={hint} />
+      {showMessage && (
+        <FieldMessage id={messageId} error={error} hint={hint} />
+      )}
     </div>
   );
 };

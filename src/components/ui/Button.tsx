@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { cn } from "../../utils/cn";
 import Spinner from "./Spinner";
 
 export interface ButtonProps
@@ -31,13 +30,10 @@ const Button = ({
 
   return (
     <button
-      className={cn(
-        "rfb-ui-button",
-        `rfb-ui-button--${variant}`,
-        `rfb-ui-button--${size}`,
-        isDisabled && "is-disabled",
-        className
-      )}
+      className={["rfb-ui-button", className].filter(Boolean).join(" ")}
+      data-variant={variant}
+      data-size={size}
+      data-disabled={isDisabled}
       disabled={isDisabled}
       aria-busy={loading || undefined}
       {...props}

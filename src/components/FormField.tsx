@@ -4,6 +4,7 @@ import { cn } from "../utils/cn";
 import { getIn } from "../utils/formState";
 import {
   Checkbox,
+  FieldMessage,
   Input,
   RadioGroup,
   Select,
@@ -111,7 +112,7 @@ const FormField = ({
       className={cn(
         `mt-4 col-span-${
           fieldSchema.cols || 6
-        } gap-x-2 grid grid-cols-12 content-start justify-start items-center px-2`,
+        } gap-x-2 gap-y-2 grid grid-cols-12 content-start justify-start px-2`,
         formSchema?.inputWrapperClassName,
         formSchema.sections[sectionIndex]?.inputWrapperClassName,
         formSchema.sections[sectionIndex].fields[fieldName]
@@ -160,7 +161,7 @@ const FormField = ({
         </label>
       </div>
 
-      <div className={`relative col-span-${fieldSchema.inputCols || 7}`}>
+      <div className={`relative col-span-${fieldSchema.inputCols || 7} self-center`}>
         {fieldSchema.type === "readonly" ? (
           <p className="rfb-readonly mt-1 text-lg">
             {String(fieldValue ?? "-")}
@@ -174,6 +175,16 @@ const FormField = ({
             errorMessage={errorMessage}
             onBlur={() => handleOnBlur(fieldName, inArray, arrayName, indexArray)}
             onValueChange={handleValueChange}
+          />
+        )}
+      </div>
+
+      <div className={`col-span-${fieldSchema.labelCols || 5}`}></div>
+      <div className={`col-span-${fieldSchema.inputCols || 7} self-start`}>
+        {fieldSchema.type === "readonly" ? null : (
+          <FieldMessage
+            id={`${fieldId}-message`}
+            error={errorMessage}
           />
         )}
       </div>
@@ -251,6 +262,7 @@ const FieldControl = ({
           value={String(fieldValue ?? "")}
           placeholder={(commonPropsInputs.placeholder as string) || "انتخاب کنید"}
           options={resolvedOptions}
+          showMessage={false}
           onValueChange={onValueChange}
           onBlur={onBlur}
         />
@@ -262,6 +274,7 @@ const FieldControl = ({
           name={commonPropsInputs.name as string}
           placeholder={commonPropsInputs.placeholder as string}
           value={String(fieldValue ?? "")}
+          showMessage={false}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             onValueChange(e.target.value)
           }
@@ -274,6 +287,7 @@ const FieldControl = ({
           {...sharedProps}
           name={commonPropsInputs.name as string}
           checked={Boolean(fieldValue)}
+          showMessage={false}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onValueChange(e.target.checked)
           }
@@ -287,6 +301,7 @@ const FieldControl = ({
           name={commonPropsInputs.name as string}
           value={String(fieldValue ?? "")}
           options={resolvedOptions}
+          showMessage={false}
           onValueChange={onValueChange}
         />
       );
@@ -295,6 +310,7 @@ const FieldControl = ({
         <Switch
           {...sharedProps}
           checked={Boolean(fieldValue)}
+          showMessage={false}
           onCheckedChange={onValueChange}
         />
       );
@@ -306,6 +322,7 @@ const FieldControl = ({
           type={resolveInputType(fieldSchema.type)}
           placeholder={commonPropsInputs.placeholder as string}
           value={String(fieldValue ?? "")}
+          showMessage={false}
           autoComplete={commonPropsInputs.autoComplete as string}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onValueChange(e.target.value)

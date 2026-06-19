@@ -1,7 +1,9 @@
 import { useId, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { cn } from "../../utils/cn";
 import FieldMessage from "./FieldMessage";
-import type { UIControlBaseProps } from "./types";
+import {
+  resolveValidationState,
+  type UIControlBaseProps,
+} from "./types";
 
 export interface SwitchProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "size" | "role">,
@@ -10,6 +12,7 @@ export interface SwitchProps
   onCheckedChange: (checked: boolean) => void;
   label?: ReactNode;
   description?: ReactNode;
+  showMessage?: boolean;
 }
 
 const Switch = ({
@@ -23,6 +26,7 @@ const Switch = ({
   onCheckedChange,
   label,
   description,
+  showMessage = true,
   id,
   type = "button",
   ...props
@@ -30,17 +34,15 @@ const Switch = ({
   const generatedId = useId();
   const switchId = id || generatedId;
   const messageId = `${switchId}-message`;
-  const state = error && validationState === "default" ? "error" : validationState;
+  const state = resolveValidationState(validationState, error);
 
   return (
-    <div className={cn("rfb-ui-field", className)}>
+    <div className={["rfb-ui-field", className].filter(Boolean).join(" ")}>
       <div
-        className={cn(
-          "rfb-ui-switch",
-          `rfb-ui-switch--${size}`,
-          `is-${state}`,
-          disabled && "is-disabled"
-        )}
+        className="rfb-ui-switch"
+        data-size={size}
+        data-state={state}
+        data-disabled={disabled}
       >
         <button
           id={switchId}
@@ -49,7 +51,8 @@ const Switch = ({
           aria-checked={checked}
           aria-invalid={state === "error" || undefined}
           aria-describedby={error || hint ? messageId : undefined}
-          className={cn("rfb-ui-switch__control", checked && "is-checked")}
+          className="rfb-ui-switch__control"
+          data-checked={checked}
           disabled={disabled}
           onClick={() => {
             if (!disabled) onCheckedChange(!checked);
@@ -67,7 +70,9 @@ const Switch = ({
           </div>
         )}
       </div>
-      <FieldMessage id={messageId} error={error} hint={hint} />
+      {showMessage && (
+        <FieldMessage id={messageId} error={error} hint={hint} />
+      )}
     </div>
   );
 };

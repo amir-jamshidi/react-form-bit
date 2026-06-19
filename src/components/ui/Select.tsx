@@ -8,11 +8,13 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { cn } from "../../utils/cn";
 import type { IOption } from "../../types";
 import FieldMessage from "./FieldMessage";
 import Spinner from "./Spinner";
-import type { UIControlBaseProps } from "./types";
+import {
+  resolveValidationState,
+  type UIControlBaseProps,
+} from "./types";
 
 type SelectChangeEvent = {
   target: {
@@ -31,6 +33,7 @@ export interface SelectProps extends UIControlBaseProps {
   placeholder?: string;
   emptyMessage?: ReactNode;
   options?: IOption[];
+  showMessage?: boolean;
   onBlur?: FocusEventHandler<HTMLButtonElement>;
   onChange?: (event: SelectChangeEvent) => void;
   onValueChange?: (value: string) => void;
@@ -41,7 +44,8 @@ const Chevron = ({ open }: { open: boolean }) => (
     aria-hidden="true"
     viewBox="0 0 20 20"
     fill="none"
-    className={cn("rfb-ui-select__icon", open && "is-open")}
+    className="rfb-ui-select__icon"
+    data-open={open}
   >
     <path
       d="m5 7.5 5 5 5-5"
@@ -65,6 +69,7 @@ const Select = ({
   options = [],
   placeholder = "Select an option",
   emptyMessage = "No options available",
+  showMessage = true,
   id,
   name,
   value,
@@ -84,8 +89,7 @@ const Select = ({
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const state =
-    error && validationState === "default" ? "error" : validationState;
+  const state = resolveValidationState(validationState, error);
 
   const selectedValue = isControlled ? value : internalValue;
   const selectedOption = useMemo(
@@ -194,7 +198,10 @@ const Select = ({
   };
 
   return (
-    <div ref={rootRef} className={cn("rfb-ui-field", className)}>
+    <div
+      ref={rootRef}
+      className={["rfb-ui-field", className].filter(Boolean).join(" ")}
+    >
       <input
         type="hidden"
         name={name}
@@ -216,24 +223,20 @@ const Select = ({
           }
           aria-invalid={state === "error" || undefined}
           aria-describedby={error || hint ? messageId : undefined}
-          className={cn(
-            "rfb-ui-control-shell rfb-ui-select-trigger",
-            `rfb-ui-control-shell--${size}`,
-            `rfb-ui-control-shell--${variant}`,
-            `is-${state}`,
-            open && "is-open",
-            (disabled || loading) && "is-disabled"
-          )}
+          className="rfb-ui-control-shell rfb-ui-select-trigger"
+          data-size={size}
+          data-variant={variant}
+          data-state={state}
+          data-open={open}
+          data-disabled={disabled || loading}
           disabled={disabled || loading}
           onClick={() => setOpen((prev) => !prev)}
           onKeyDown={handleKeyDown}
           onBlur={onBlur}
         >
           <span
-            className={cn(
-              "rfb-ui-select__value",
-              !selectedOption && "is-placeholder"
-            )}
+            className="rfb-ui-select__value"
+            data-placeholder={!selectedOption}
           >
             {selectedOption?.label || placeholder}
           </span>
@@ -264,11 +267,9 @@ const Select = ({
                       type="button"
                       role="option"
                       aria-selected={isSelected}
-                      className={cn(
-                        "rfb-ui-select-option",
-                        isActive && "is-active",
-                        isSelected && "is-selected"
-                      )}
+                      className="rfb-ui-select-option"
+                      data-active={isActive}
+                      data-selected={isSelected}
                       onClick={() => commitSelection(option.value)}
                     >
                       <span className="rfb-ui-select-option__label">
@@ -298,7 +299,9 @@ const Select = ({
           </div>
         )}
       </div>
-      <FieldMessage id={messageId} error={error} hint={hint} />
+      {showMessage && (
+        <FieldMessage id={messageId} error={error} hint={hint} />
+      )}
     </div>
   );
 };

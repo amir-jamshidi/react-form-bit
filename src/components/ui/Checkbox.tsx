@@ -3,15 +3,18 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { cn } from "../../utils/cn";
 import FieldMessage from "./FieldMessage";
-import type { UIControlBaseProps } from "./types";
+import {
+  resolveValidationState,
+  type UIControlBaseProps,
+} from "./types";
 
 export interface CheckboxProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type">,
     UIControlBaseProps {
   label?: ReactNode;
   description?: ReactNode;
+  showMessage?: boolean;
 }
 
 const Checkbox = ({
@@ -23,24 +26,23 @@ const Checkbox = ({
   disabled,
   label,
   description,
+  showMessage = true,
   id,
   ...props
 }: CheckboxProps) => {
   const generatedId = useId();
   const inputId = id || generatedId;
   const messageId = `${inputId}-message`;
-  const state = error && validationState === "default" ? "error" : validationState;
+  const state = resolveValidationState(validationState, error);
 
   return (
-    <div className={cn("rfb-ui-field", className)}>
+    <div className={["rfb-ui-field", className].filter(Boolean).join(" ")}>
       <label
         htmlFor={inputId}
-        className={cn(
-          "rfb-ui-checkbox",
-          `rfb-ui-checkbox--${size}`,
-          `is-${state}`,
-          disabled && "is-disabled"
-        )}
+        className="rfb-ui-checkbox"
+        data-size={size}
+        data-state={state}
+        data-disabled={disabled}
       >
         <input
           id={inputId}
@@ -74,7 +76,9 @@ const Checkbox = ({
           </span>
         )}
       </label>
-      <FieldMessage id={messageId} error={error} hint={hint} />
+      {showMessage && (
+        <FieldMessage id={messageId} error={error} hint={hint} />
+      )}
     </div>
   );
 };

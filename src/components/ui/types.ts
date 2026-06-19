@@ -14,3 +14,13 @@ export interface UIControlBaseProps {
   className?: string;
 }
 
+export const resolveValidationState = (
+  validationState: UIValidationState = "default",
+  error?: string
+): UIValidationState => {
+  if (error && validationState === "default") {
+    return "error";
+  }
+
+  return validationState;
+};

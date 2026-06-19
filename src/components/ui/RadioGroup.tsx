@@ -1,8 +1,10 @@
 import { useId } from "react";
-import { cn } from "../../utils/cn";
 import type { IOption } from "../../types";
 import FieldMessage from "./FieldMessage";
-import type { UIControlBaseProps } from "./types";
+import {
+  resolveValidationState,
+  type UIControlBaseProps,
+} from "./types";
 
 export interface RadioGroupProps extends UIControlBaseProps {
   name: string;
@@ -12,6 +14,7 @@ export interface RadioGroupProps extends UIControlBaseProps {
   disabled?: boolean;
   orientation?: "horizontal" | "vertical";
   id?: string;
+  showMessage?: boolean;
   "aria-label"?: string;
   "aria-labelledby"?: string;
 }
@@ -29,28 +32,26 @@ const RadioGroup = ({
   onValueChange,
   orientation = "vertical",
   id,
+  showMessage = true,
   ...ariaProps
 }: RadioGroupProps) => {
   const generatedId = useId();
   const groupId = id || generatedId;
   const messageId = `${groupId}-message`;
-  const state =
-    error && validationState === "default" ? "error" : validationState;
+  const state = resolveValidationState(validationState, error);
 
   return (
-    <div className={cn("rfb-ui-field", className)}>
+    <div className={["rfb-ui-field", className].filter(Boolean).join(" ")}>
       <div
         role="radiogroup"
         id={groupId}
         aria-invalid={state === "error" || undefined}
         aria-describedby={error || hint ? messageId : undefined}
-        className={cn(
-          "rfb-ui-radio-group",
-          `rfb-ui-radio-group--${orientation}`,
-          `rfb-ui-radio-group--${size}`,
-          `is-${state}`,
-          disabled && "is-disabled"
-        )}
+        className="rfb-ui-radio-group"
+        data-orientation={orientation}
+        data-size={size}
+        data-state={state}
+        data-disabled={disabled}
         {...ariaProps}
       >
         {options.map((option) => {
@@ -77,7 +78,9 @@ const RadioGroup = ({
           );
         })}
       </div>
-      <FieldMessage id={messageId} error={error} hint={hint} />
+      {showMessage && (
+        <FieldMessage id={messageId} error={error} hint={hint} />
+      )}
     </div>
   );
 };

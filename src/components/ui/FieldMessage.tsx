@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { cn } from "../../utils/cn";
 
 interface FieldMessageProps {
   id?: string;
@@ -9,18 +8,22 @@ interface FieldMessageProps {
 }
 
 const FieldMessage = ({ id, error, hint, className }: FieldMessageProps) => {
-  if (!error && !hint) return null;
+  const content = error || hint;
 
   return (
     <div
       id={id}
-      className={cn("rfb-ui-message text-xs mt-2", error && "is-error", className)}
+      data-has-error={Boolean(error)}
+      data-empty={!content}
+      className={["rfb-ui-message text-xs mt-1", className]
+        .filter(Boolean)
+        .join(" ")}
       aria-live={error ? "polite" : undefined}
+      aria-hidden={!content || undefined}
     >
-      {error || hint}
+      {content || "\u00A0"}
     </div>
   );
 };
 
 export default FieldMessage;
-
