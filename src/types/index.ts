@@ -1,6 +1,14 @@
 import { TErrorsType } from "../hooks/useFormState";
 import ValidatorEngine from "../utils/ValidatorEngine";
 
+export type FormTheme =
+    | 'modern'
+    | 'classic'
+    | 'forest'
+    | 'rose'
+    | 'midnight'
+    | 'headless';
+
 // Validation rule interface
 export interface IValidationRule {
     operator: keyof typeof ValidatorEngine.operators;
@@ -121,6 +129,7 @@ export interface IFormSchema {
     title: string;
     subTitle: string;
     formIndex: number;
+    theme?: FormTheme;
     sections: ISection[];
     formPath?: string;
     globalValidation?: Pick<IValidation, 'when' | 'message' | 'customValidate'>[];

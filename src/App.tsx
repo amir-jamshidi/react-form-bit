@@ -1,7 +1,19 @@
+import { useState } from "react";
 import Form from "./components/Form";
-import { IFormSchema } from "./types";
+import { FormTheme, IFormSchema } from "./types";
+
+const themeOptions: { value: FormTheme; label: string }[] = [
+  { value: "modern", label: "Modern" },
+  { value: "classic", label: "Classic" },
+  { value: "forest", label: "Forest" },
+  { value: "rose", label: "Rose" },
+  { value: "midnight", label: "Midnight" },
+  { value: "headless", label: "Headless" },
+];
 
 const App = () => {
+  const [theme, setTheme] = useState<FormTheme>("modern");
+
   const handleSubmit = ({
     formData,
     sectionIndex,
@@ -12,12 +24,43 @@ const App = () => {
     console.log("run ....", formData, sectionIndex);
   };
 
-  return <Form onSubmit={handleSubmit} formSchema={formSchema} />;
+  return (
+    <div className="min-h-screen px-4 py-8">
+      <div className="max-w-[1000px] mx-auto mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
+            React Form Bit
+          </p>
+          <h1 className="text-3xl text-slate-900 font-semibold">
+            Theme Showcase
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 rounded-[1.75rem] border border-slate-300 bg-white/80 p-1 shadow-sm flex-wrap">
+          {themeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setTheme(option.value)}
+              className={`rounded-full px-4 py-2 text-sm transition ${
+                theme === option.value
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <Form onSubmit={handleSubmit} formSchema={formSchema} theme={theme} />
+    </div>
+  );
 };
 
 export default App;
 
 export const formSchema: IFormSchema = {
+  theme: "modern",
   title: "فرم حساب های بانکی مشتری",
   subTitle: "لطفا اطلاعات حساب های بانکی خود را در فرم های زیر وارد کنید",
   sections: [
@@ -94,14 +137,13 @@ export const formSchema: IFormSchema = {
           submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "SECTION",
-          className:
-            "bg-slate-700 w-52  text-white  cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
+          className: "w-52",
         },
       ],
     },
     {
       arrayName: "accountBanksItems",
-      // isArray: true,
+      isArray: true,
       title: "لیست حساب های بانکی",
       subTitle:
         "مشتری گرامی لطفا لیست حساب های بانکی خود را در فرم زیر وارد کنید",
@@ -189,8 +231,7 @@ export const formSchema: IFormSchema = {
           submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "SECTION",
-          className:
-            "bg-slate-700 w-52  text-white  cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
+          className: "w-52",
         },
       ],
     },
@@ -204,15 +245,13 @@ export const formSchema: IFormSchema = {
       submitterKey: "SUBMIT",
       type: "submit",
       validateFields: "ALL",
-      className:
-        "bg-slate-700 text-white w-52 cursor-pointer transition-all hover:bg-slate-800 rounded py-2",
+      className: "w-52",
     },
     {
       label: "پاک کردن فرم",
       submitterKey: "SUBMIT",
       type: "reset",
-      className:
-        "bg-rose-700 text-white w-52 cursor-pointer transition-all hover:bg-rose-800 rounded py-2",
+      className: "w-52",
     },
   ],
 };

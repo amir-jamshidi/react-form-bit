@@ -40,13 +40,17 @@ Build complex forms with multiple sections, each with its own logic:
 - Section-level error handling
 - Granular control over which fields to validate on submission
 
-### 🎨 Complete Styling Freedom
+### 🎨 Built-In Themes + Styling Freedom
 
-No opinionated styles—bring your own design:
+React Bit Form now includes multiple built-in design systems:
 
-- Full control over form appearance
-- Seamless Tailwind CSS integration
-- Custom component rendering
+- `modern`: soft glass surfaces, refined contrast, rounded controls
+- `classic`: warm paper tones, timeless contrast, traditional UI feel
+- `forest`: clean green palette with calm enterprise styling
+- `rose`: warm editorial palette with softer contrast
+- `midnight`: dark professional UI with high clarity
+- `headless`: preserves form structure and grid layout while removing the visual skin
+- Full control over form appearance through existing `className` hooks
 - Responsive design support
 
 ### ⚙️ Dynamic Data Management
@@ -118,6 +122,7 @@ const MyForm = () => {
 
   return (
     <Form 
+      theme="forest"
       formSchema={formSchema} 
       onSubmit={handleSubmit}
     />
@@ -136,6 +141,7 @@ Every form schema follows this basic structure:
   title: string;              // Form title
   subTitle?: string;          // Form subtitle
   formIndex: number;          // Form identifier
+  theme?: FormTheme;          // Schema-level fallback theme
   formPath: string;           // Form path (can be empty)
   defaultValue?: object;      // Default values for fields
   remoteDefaultValue?: {      // Fetch default values from API
@@ -158,10 +164,32 @@ Every form schema follows this basic structure:
 {
   title: "Customer Registration Form",
   subTitle: "Please fill in your information below",
+  theme: "modern", // schema fallback if Form prop is omitted
   formIndex: 1,
   formPath: ""
 }
 ```
+
+### Renderer Theme Prop
+
+Pass theme directly to the renderer when you want the component consumer to control presentation:
+
+```tsx
+<Form
+  theme="headless"
+  formSchema={formSchema}
+  onSubmit={handleSubmit}
+/>
+```
+
+Available values:
+
+- `modern`
+- `classic`
+- `forest`
+- `rose`
+- `midnight`
+- `headless`
 
 ### Default Values
 

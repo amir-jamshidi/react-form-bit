@@ -1,5 +1,5 @@
 import FormProvider, { useForm } from "../FormProvider";
-import { IFormSchema } from "../types";
+import { FormTheme, IFormSchema } from "../types";
 import { cn } from "../utils/cn";
 import ErrorMessage from "./ErrorMessage";
 import FormDebug from "./FormDebug";
@@ -10,27 +10,33 @@ import type { MouseEvent } from "react";
 interface IFormProps {
   formSchema: IFormSchema;
   onSubmit: ({ formData }: { formData: any; sectionIndex?: number }) => void;
+  theme?: FormTheme;
 }
 
-export const Form = ({ formSchema, onSubmit }: IFormProps) => {
+export const Form = ({ formSchema, onSubmit, theme }: IFormProps) => {
+  const resolvedTheme = theme || formSchema.theme || "modern";
+
   return (
     <FormProvider onSubmit={onSubmit} formSchema={formSchema}>
-      <FormGen formSchema={formSchema} />
+      <FormGen formSchema={formSchema} theme={resolvedTheme} />
     </FormProvider>
   );
 };
 
-function FormGen({ formSchema }: Pick<IFormProps, "formSchema">) {
+function FormGen({
+  formSchema,
+  theme,
+}: Pick<IFormProps, "formSchema" | "theme">) {
   const { handleSubmit, handleClearForm } = useForm();
 
   return (
-    <div>
+    <div data-theme={theme} className="rfb-theme rfb-page-shell">
       <div className="max-w-[1000px] mx-auto mt-12">
         <ErrorMessage errorKey="form" />
       </div>
-      <div className="max-w-[1000px] mx-auto bg-slate-900 border border-slate-700 rounded-2xl mt-2">
+      <div className="rfb-form max-w-[1000px] mx-auto mt-2">
         <FormHeader formSchema={formSchema} />
-        <form className="py-5 px-6">
+        <form className="rfb-card py-5 px-6">
           {formSchema.sections.map((section, i) => (
             <FormSection key={i} section={section} index={i} />
           ))}
@@ -45,7 +51,13 @@ function FormGen({ formSchema }: Pick<IFormProps, "formSchema">) {
                     : handleClearForm()
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
-                className={cn(actionBtn.className)}
+                className={cn(
+                  "rfb-button",
+                  actionBtn.type === "reset"
+                    ? "rfb-button-secondary"
+                    : "rfb-button-primary",
+                  actionBtn.className
+                )}
               >
                 {actionBtn.label}
               </button>

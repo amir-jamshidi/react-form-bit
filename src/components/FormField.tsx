@@ -89,11 +89,11 @@ const FormField = ({
     disabled: !fieldState.isEnable,
     autoComplete: "off",
     className: cn(
-      "w-full py-2.5 px-3 border rounded outline-none text-white",
-      hasError ? "border-rose-600" : "border-slate-700",
+      "rfb-control w-full py-2.5 px-3 border rounded outline-none",
+      hasError ? "rfb-control-error" : "",
       !fieldState.isEnable
-        ? "bg-gray-100 cursor-not-allowed disabled:text-gray-500 disabled:border-gray-100"
-        : "bg-slate-800 hover:bg-slate-900 transition-colors",
+        ? "rfb-control-disabled cursor-not-allowed"
+        : "transition-colors",
       formSchema?.inputClassName,
       formSchema.sections[sectionIndex]?.inputClassName,
       formSchema.sections[sectionIndex].fields[fieldName].inputClassName
@@ -119,25 +119,25 @@ const FormField = ({
       >
         <span
           className={cn(
-            `block w-1.5 h-1.5 bg-[#6CA8A0] rounded-full`,
-            { "bg-amber-600": isRequired },
-            { "bg-rose-600": hasError },
-            { "bg-gray-400": !fieldState.isEnable },
+            "rfb-label-dot block w-1.5 h-1.5 rounded-full",
+            { "rfb-label-dot-required": isRequired },
+            { "rfb-label-dot-error": hasError },
+            { "rfb-label-dot-disabled": !fieldState.isEnable },
             {
-              "bg-emerald-600!": Boolean(isRequired && fieldValue),
+              "rfb-label-dot-filled": Boolean(isRequired && fieldValue),
             },
-            { "bg-gray-400": fieldSchema.type === "readonly" }
+            { "rfb-label-dot-disabled": fieldSchema.type === "readonly" }
           )}
         ></span>
         <label
           htmlFor={`${fieldName}${indexArray !== undefined ? indexArray : ""}`}
-          className="text-right font-normal text-[#545A61] flex justify-center items-center"
+          className="rfb-label text-right font-normal flex justify-center items-center"
         >
           <span
             className={cn(
               {
-                "text-rose-600": hasError,
-                "text-slate-300": !hasError,
+                "rfb-label-error": hasError,
+                "rfb-label-text": !hasError,
                 "text-lg": fieldSchema.type === "readonly",
               },
               formSchema?.labelClassName,
@@ -148,7 +148,7 @@ const FormField = ({
             {fieldSchema.label}
           </span>
 
-          {isRequired && <span className="text-rose-600 pt-2.5 pr-1.5">*</span>}
+          {isRequired && <span className="rfb-label-error pt-2.5 pr-1.5">*</span>}
         </label>
       </div>
 
@@ -160,7 +160,7 @@ const FormField = ({
             commonPropsInputs={commonPropsInputs}
           />
         ) : fieldSchema.type === "readonly" ? (
-          <p className="text-[#545A61] mt-1 text-lg">
+          <p className="rfb-readonly mt-1 text-lg">
             {String(fieldValue ?? "-")}
           </p>
         ) : (
@@ -173,7 +173,7 @@ const FormField = ({
           <div className={`col-span-${fieldSchema.labelCols || 5}`}></div>
           <div className={`col-span-${fieldSchema.inputCols || 7}`}>
             {errorList.map((error, index) => (
-              <p className="text-red-500 text-xs mt-1" key={index}>
+              <p className="rfb-field-error text-xs mt-1" key={index}>
                 {error}
               </p>
             ))}

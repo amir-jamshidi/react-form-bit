@@ -10,23 +10,23 @@ const FormHeader = ({ formSchema }: IFormHeaderProps) => {
   const { checkFormState } = useForm();
   const formState = checkFormState();
   return (
-    <div className="mx-8 py-5 border-bs border-sb -slate-800">
+    <div className="rfb-header mx-8 py-5">
       <div className="flex gap-x-2">
         <span
           className={cn(
-            `text-white text-sm pt-1 flex justify-center items-center w-6 h-6 rounded-full`,
+            "rfb-status text-sm pt-1 flex justify-center items-center w-7 h-7 rounded-full",
             {
-              "bg-emerald-600": formState === "valid",
-              "bg-zinc-500": formState === "notFill",
-              "bg-rose-600": formState === "error",
+              "rfb-status-valid": formState === "valid",
+              "rfb-status-pending": formState === "notFill",
+              "rfb-status-error": formState === "error",
             }
           )}
         >
           {Number(formSchema.formIndex).toLocaleString("fa")}
         </span>
-        <h2 className="text-xl text-white">{formSchema.title}</h2>
+        <h2 className="rfb-title text-xl">{formSchema.title}</h2>
       </div>
-      <p className="text-sm text-slate-300 mr-8">{formSchema.subTitle}</p>
+      <p className="rfb-subtitle text-sm mr-9 mt-2">{formSchema.subTitle}</p>
     </div>
   );
 };

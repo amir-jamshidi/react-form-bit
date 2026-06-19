@@ -59,30 +59,30 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
           return (
             <div key={`${arrayName}-${i}`}>
               <ErrorMessage errorKey={`section.${index}`} />
-              <div className="bg-slate-900 grid grid-cols-12 gap-x-8 gap-y-4 border border-slate-700 rounded-2xl px-3 pb-8 mb-4">
-                <div className="mx-2 py-3 mt-1 px-2 border-dashed border-b border-b-slate-800 col-span-12">
+              <div className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4">
+                <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
                   <div className="flex gap-x-2">
                     <span
                       className={cn(
-                        `text-white pt-1 flex justify-center items-center w-6 h-6 rounded-full font-far2 text-xs`,
-                        { "bg-emerald-600": !hasError },
-                        { "bg-zinc-600": formNotFill },
-                        { "bg-rose-600": hasError }
+                        "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
+                        { "rfb-status-valid": !hasError && !formNotFill },
+                        { "rfb-status-pending": formNotFill },
+                        { "rfb-status-error": hasError }
                       )}
                     >
                       {Number(formSchema.formIndex).toLocaleString("fa")}.
                       {Number(index + 1).toLocaleString("fa")}
                     </span>
                     <div className="flex justify-between items-center w-full">
-                      <h2 className="text-xl text-slate-100">
+                      <h2 className="rfb-section__title text-xl">
                         {section.title}
                       </h2>
-                      <span className="bg-blue-800 text-white rounded px-2 text-sm flex justify-center items-center pt-0.5">
+                      <span className="rfb-pill text-sm flex justify-center items-center pt-0.5">
                         لیست
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-slate-300 mr-8">
+                  <p className="rfb-subtitle text-sm mr-8">
                     {section.subTitle}
                   </p>
                 </div>
@@ -106,7 +106,7 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                       data-array-index={i}
                       data-array-name={arrayName}
                       key={idx}
-                      onClick={(e: MouseEvent<HTMLButtonElement>) =>
+                        onClick={(e: MouseEvent<HTMLButtonElement>) =>
                           actionBtn.type === "submit"
                             ? handleSubmit(
                                 e,
@@ -116,7 +116,13 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                             : handleClearForm(index)
                         }
                         type={actionBtn.type === "submit" ? "submit" : "button"}
-                        className={cn(actionBtn.className)}
+                        className={cn(
+                          "rfb-button",
+                          actionBtn.type === "reset"
+                            ? "rfb-button-secondary"
+                            : "rfb-button-primary",
+                          actionBtn.className
+                        )}
                       >
                         {actionBtn.label}
                       </button>
@@ -133,23 +139,23 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
   return (
     <div>
       <ErrorMessage errorKey={`section.${index}`} />
-      <div className="bg-slate-900 grid grid-cols-12 gap-x-8 gap-y-4 border border-slate-700 rounded-2xl px-3 pb-8 mb-4">
-        <div className="mx-2 py-3 mt-1 px-2 border-dashed border-b border-b-slate-800 col-span-12">
+      <div className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4">
+        <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
           <div className="flex gap-x-2">
             <span
               className={cn(
-                `text-white pt-1 flex justify-center items-center w-6 h-6 rounded-full font-far2 text-xs`,
-                { "bg-emerald-600": !hasError },
-                { "bg-zinc-600": formNotFill },
-                { "bg-rose-600": hasError }
+                "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
+                { "rfb-status-valid": !hasError && !formNotFill },
+                { "rfb-status-pending": formNotFill },
+                { "rfb-status-error": hasError }
               )}
             >
               {Number(formSchema.formIndex).toLocaleString("fa")}.
               {Number(index + 1).toLocaleString("fa")}
             </span>
-            <h2 className="text-xl text-slate-100">{section.title}</h2>
+            <h2 className="rfb-section__title text-xl">{section.title}</h2>
           </div>
-          <p className="text-sm text-slate-300 mr-8">{section.subTitle}</p>
+          <p className="rfb-subtitle text-sm mr-8">{section.subTitle}</p>
         </div>
 
         {Object.keys(section.fields).map((fieldName) => (
@@ -170,7 +176,13 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                     : handleClearForm(index)
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
-                className={cn(actionBtn.className)}
+                className={cn(
+                  "rfb-button",
+                  actionBtn.type === "reset"
+                    ? "rfb-button-secondary"
+                    : "rfb-button-primary",
+                  actionBtn.className
+                )}
               >
                 {actionBtn.label}
               </button>

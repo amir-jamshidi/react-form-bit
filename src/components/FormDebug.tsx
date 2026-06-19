@@ -3,23 +3,23 @@ import { useForm } from "../FormProvider";
 const FormDebug = () => {
   const { formData } = useForm();
   return (
-    <div dir="ltr" className="w-96 mx-auto bg-gray-800 mt-8 p-4 rounded-xl">
+    <div dir="ltr" className="rfb-debug w-96 max-w-full mx-auto mt-8 p-4 rounded-xl">
       {Object.entries(formData).map(([key, value]) => {
         if (typeof value === "object")
           return (
             <div key={key} className="flex justify-start items-center">
-              <p className="text-orange-600 font-semibold">{key}</p>
-              <p className="text-white mx-1"> : </p>
-              <p className="text-white font-semibold">
+              <p className="rfb-debug__key font-semibold">{key}</p>
+              <p className="rfb-debug__separator mx-1"> : </p>
+              <p className="rfb-debug__value font-semibold">
                 {JSON.stringify(value)}
               </p>
             </div>
           );
         return (
           <div key={key} className="flex justify-start items-center">
-            <p className="text-orange-600 font-semibold">{key}</p>
-            <p className="text-white mx-1"> : </p>
-            <p className="text-white font-semibold">{String(value)}</p>
+            <p className="rfb-debug__key font-semibold">{key}</p>
+            <p className="rfb-debug__separator mx-1"> : </p>
+            <p className="rfb-debug__value font-semibold">{String(value)}</p>
           </div>
         );
       })}

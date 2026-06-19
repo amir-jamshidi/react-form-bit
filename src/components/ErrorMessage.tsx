@@ -12,8 +12,8 @@ const ErrorMessage = ({ errorKey }: IErrorMessageProps) => {
   if (!Array.isArray(errorList) || !errorList.length) return null;
 
   return (
-    <div className="w-full border mb-2 border-gray-200 rounded-2xl flex gap-x-2.5 overflow-hidden">
-      <div className="min-h-14 bg-red-500 min-w-16 flex items-center justify-center">
+    <div className="rfb-error-banner w-full mb-2 rounded-2xl flex gap-x-2.5 overflow-hidden">
+      <div className="rfb-error-banner__icon min-h-14 min-w-16 flex items-center justify-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
