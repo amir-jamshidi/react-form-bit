@@ -64,72 +64,7 @@ const App = () => {
           ))}
         </div>
       </div>
-      <div data-theme={theme} className="rfb-theme max-w-[1000px] mx-auto mb-8">
-        <div className="rfb-card p-6">
-          <div className="mb-6">
-            <p className="text-sm uppercase tracking-[0.24em] rfb-subtitle">
-              UI Components
-            </p>
-            <h2 className="text-2xl rfb-title">Design System Preview</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Input
-              value={previewInput}
-              onChange={(e) => setPreviewInput(e.target.value)}
-              placeholder="Type a customer name"
-              hint="Reusable input with size, state, and adornment support."
-            />
-            <Select
-              value={previewSelect}
-              onValueChange={setPreviewSelect}
-              placeholder="Choose a bank"
-              options={[
-                { label: "Melli Bank", value: "melli" },
-                { label: "Mellat Bank", value: "mellat" },
-                { label: "Saman Bank", value: "saman" },
-              ]}
-            />
-            <Textarea
-              className="md:col-span-2"
-              value={previewTextarea}
-              onChange={(e) => setPreviewTextarea(e.target.value)}
-              placeholder="Add operational notes"
-            />
-            <Checkbox
-              checked={previewChecked}
-              onChange={(e) => setPreviewChecked(e.target.checked)}
-              label="Enable notifications"
-              description="Checkbox component with custom indicator and messaging support."
-            />
-            <Switch
-              checked={previewSwitch}
-              onCheckedChange={setPreviewSwitch}
-              label="Realtime verification"
-              description="Switch control with animated state changes."
-            />
-            <div className="md:col-span-2">
-              <RadioGroup
-                name="plan"
-                value={previewRadio}
-                onValueChange={setPreviewRadio}
-                orientation="horizontal"
-                options={[
-                  { label: "Starter", value: "starter" },
-                  { label: "Business", value: "business" },
-                  { label: "Enterprise", value: "enterprise" },
-                ]}
-              />
-            </div>
-            <div className="md:col-span-2 flex gap-3 flex-wrap">
-              <Button>Primary Action</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="danger">Destructive</Button>
-            </div>
-          </div>
-        </div>
-      </div>
+  
       <Form onSubmit={handleSubmit} formSchema={formSchema} theme={theme} />
     </div>
   );
@@ -140,9 +75,14 @@ export default App;
 export const formSchema: IFormSchema = {
   theme: "modern",
   title: "فرم حساب های بانکی مشتری",
+  hasBackground:false ,
+  hasIndexing:false ,
+  showHeader:false ,
   subTitle: "لطفا اطلاعات حساب های بانکی خود را در فرم های زیر وارد کنید",
   sections: [
     {
+      hasBackground:true ,
+      showHeader:true,
       title: "مشخصات فردی",
       subTitle: "مشتری گرامی لطفا مشخصات فردی خود را در فرم زیر وارد نمایید.",
       fields: {
@@ -220,6 +160,8 @@ export const formSchema: IFormSchema = {
       ],
     },
     {
+        hasBackground:true ,
+      showHeader:true,
       arrayName: "accountBanksItems",
       isArray: true,
       title: "لیست حساب های بانکی",

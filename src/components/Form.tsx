@@ -29,6 +29,8 @@ function FormGen({
   theme,
 }: Pick<IFormProps, "formSchema" | "theme">) {
   const { handleSubmit, handleClearForm } = useForm();
+  const showHeader = formSchema.showHeader !== false;
+  const hasBackground = formSchema.hasBackground !== false;
 
   return (
     <div data-theme={theme} className="rfb-theme rfb-page-shell">
@@ -36,8 +38,11 @@ function FormGen({
         <ErrorMessage errorKey="form" />
       </div>
       <div className="rfb-form max-w-[1000px] mx-auto mt-2">
-        <FormHeader formSchema={formSchema} />
-        <form className="rfb-card py-5 px-6">
+        {showHeader ? <FormHeader formSchema={formSchema} /> : null}
+        <form
+          className="rfb-card py-5 px-6"
+          data-has-background={hasBackground}
+        >
           {formSchema.sections.map((section, i) => (
             <FormSection key={i} section={section} index={i} />
           ))}

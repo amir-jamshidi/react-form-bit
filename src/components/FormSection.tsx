@@ -21,16 +21,21 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
     errors,
     handleClearForm,
   } = useForm();
+  const showSectionHeader = section.showHeader !== false;
+  const hasSectionBackground = section.hasBackground !== false;
+  const hasIndexing = formSchema.hasIndexing !== false;
 
   const formFields = Object.keys(section.fields);
 
   const hasError = formFields.some(
-    (field) => Array.isArray(errors[field]) && errors[field]!.length > 0
+    (field) => Array.isArray(errors[field]) && errors[field]!.length > 0,
   );
 
   const formNotFill = formFields.some((fieldName) => {
     const fieldSchema = section.fields[fieldName];
-    return isFieldRequired(fieldSchema, formData) && !getIn(formData, fieldName);
+    return (
+      isFieldRequired(fieldSchema, formData) && !getIn(formData, fieldName)
+    );
   });
 
   if (section.isArray && section.arrayName) {
@@ -47,46 +52,59 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
         {arrayList?.map((_item, i) => {
           const rowErrors = arrayErrors?.[i] ?? {};
           const hasError = formFields.some(
-            (field) => (rowErrors[field]?.length ?? 0) > 0
+            (field) => (rowErrors[field]?.length ?? 0) > 0,
           );
           const rowData = getIn(formData, `${arrayName}.${i}`) ?? formData;
           const formNotFill = formFields.some((fieldName) => {
             const fieldSchema = section.fields[fieldName];
             return (
-              isFieldRequired(fieldSchema, rowData as Record<string, unknown>) &&
-              !getIn(formData, `${arrayName}.${i}.${fieldName}`)
+              isFieldRequired(
+                fieldSchema,
+                rowData as Record<string, unknown>,
+              ) && !getIn(formData, `${arrayName}.${i}.${fieldName}`)
             );
           });
           return (
             <div key={`${arrayName}-${i}`}>
               <ErrorMessage errorKey={`section.${index}`} />
-              <div className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4">
-                <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
-                  <div className="flex gap-x-2">
-                    <span
-                      className={cn(
-                        "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
-                        { "rfb-status-valid": !hasError && !formNotFill },
-                        { "rfb-status-pending": formNotFill },
-                        { "rfb-status-error": hasError }
-                      )}
-                    >
-                      {Number(formSchema.formIndex).toLocaleString("fa")}.
-                      {Number(index + 1).toLocaleString("fa")}
-                    </span>
-                    <div className="flex justify-between items-center w-full">
-                      <h2 className="rfb-section__title text-xl">
-                        {section.title}
-                      </h2>
-                      <span className="rfb-pill text-sm flex justify-center items-center pt-0.5">
-                        لیست
-                      </span>
+              <div
+                className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4"
+                data-has-background={hasSectionBackground}
+              >
+                {showSectionHeader ? (
+                  <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
+                    <div className="flex gap-x-2">
+                      {hasIndexing ? (
+                        <span
+                          className={cn(
+                            "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
+                            { "rfb-status-valid": !hasError && !formNotFill },
+                            { "rfb-status-pending": formNotFill },
+                            { "rfb-status-error": hasError },
+                          )}
+                        >
+                          {Number(formSchema.formIndex).toLocaleString("fa")}.
+                          {Number(index + 1).toLocaleString("fa")}
+                        </span>
+                      ) : null}
+                      <div className="flex justify-between items-center w-full">
+                        <h2 className="rfb-section__title text-xl">
+                          {section.title}
+                        </h2>
+                        <span className="rfb-pill text-sm flex justify-center items-center pt-0.5">
+                          لیست
+                        </span>
+                      </div>
                     </div>
+                    <p
+                      className={cn("rfb-subtitle text-sm", {
+                        "mr-8": hasIndexing,
+                      })}
+                    >
+                      {section.subTitle}
+                    </p>
                   </div>
-                  <p className="rfb-subtitle text-sm mr-8">
-                    {section.subTitle}
-                  </p>
-                </div>
+                ) : null}
 
                 {Object.keys(section.fields).map((fieldName) => (
                   <FormField
@@ -112,12 +130,14 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                             ? handleSubmit(
                                 e,
                                 actionBtn.validateFields || "ALL",
-                                index
+                                index,
                               )
                             : handleClearForm(index, arrayName, i)
                         }
                         type={actionBtn.type === "submit" ? "submit" : "button"}
-                        variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                        variant={
+                          actionBtn.type === "reset" ? "secondary" : "primary"
+                        }
                         className={cn("rfb-button", actionBtn.className)}
                       >
                         {actionBtn.label}
@@ -135,24 +155,37 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
   return (
     <div>
       <ErrorMessage errorKey={`section.${index}`} />
-      <div className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4">
-        <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
-          <div className="flex gap-x-2">
-            <span
-              className={cn(
-                "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
-                { "rfb-status-valid": !hasError && !formNotFill },
-                { "rfb-status-pending": formNotFill },
-                { "rfb-status-error": hasError }
-              )}
+      <div
+        className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4"
+        data-has-background={hasSectionBackground}
+      >
+        {showSectionHeader ? (
+          <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
+            <div className="flex gap-x-2">
+              {hasIndexing ? (
+                <span
+                  className={cn(
+                    "rfb-section__badge pt-1 flex justify-center items-center w-7 h-7 rounded-full font-far2 text-xs",
+                    { "rfb-status-valid": !hasError && !formNotFill },
+                    { "rfb-status-pending": formNotFill },
+                    { "rfb-status-error": hasError },
+                  )}
+                >
+                  {Number(formSchema.formIndex).toLocaleString("fa")}.
+                  {Number(index + 1).toLocaleString("fa")}
+                </span>
+              ) : null}
+              <h2 className="rfb-section__title text-xl">{section.title}</h2>
+            </div>
+            <p
+              className={cn("rfb-subtitle text-sm", {
+                "mr-8": hasIndexing,
+              })}
             >
-              {Number(formSchema.formIndex).toLocaleString("fa")}.
-              {Number(index + 1).toLocaleString("fa")}
-            </span>
-            <h2 className="rfb-section__title text-xl">{section.title}</h2>
+              {section.subTitle}
+            </p>
           </div>
-          <p className="rfb-subtitle text-sm mr-8">{section.subTitle}</p>
-        </div>
+        ) : null}
 
         {Object.keys(section.fields).map((fieldName) => (
           <FormField

@@ -110,6 +110,8 @@ export interface IField {
 export interface ISection {
     title: string;
     subTitle: string;
+    showHeader?: boolean;
+    hasBackground?: boolean;
     id?: string;
     globalValidation?: Pick<IValidation, 'when' | 'message' | 'customValidate'>[];
     actionButtons?: ISectionActionButtons[];
@@ -130,6 +132,9 @@ export interface IFormSchema {
     subTitle: string;
     formIndex: number;
     theme?: FormTheme;
+    hasIndexing?: boolean;
+    showHeader?: boolean;
+    hasBackground?: boolean;
     sections: ISection[];
     formPath?: string;
     globalValidation?: Pick<IValidation, 'when' | 'message' | 'customValidate'>[];
