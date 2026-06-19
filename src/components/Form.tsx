@@ -5,6 +5,7 @@ import ErrorMessage from "./ErrorMessage";
 import FormDebug from "./FormDebug";
 import FormHeader from "./FormHeader";
 import FormSection from "./FormSection";
+import { Button } from "./ui";
 import type { MouseEvent } from "react";
 
 interface IFormProps {
@@ -43,7 +44,7 @@ function FormGen({
 
           <div className="flex justify-center items-center mt-12 gap-x-2">
             {formSchema.actionButtons.map((actionBtn, idx) => (
-              <button
+              <Button
                 key={idx}
                 onClick={(e: MouseEvent<HTMLButtonElement>) =>
                   actionBtn.type === "submit"
@@ -51,16 +52,11 @@ function FormGen({
                     : handleClearForm()
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
-                className={cn(
-                  "rfb-button",
-                  actionBtn.type === "reset"
-                    ? "rfb-button-secondary"
-                    : "rfb-button-primary",
-                  actionBtn.className
-                )}
+                variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                className={cn("rfb-button", actionBtn.className)}
               >
                 {actionBtn.label}
-              </button>
+              </Button>
             ))}
           </div>
         </form>

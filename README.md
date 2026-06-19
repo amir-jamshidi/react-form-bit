@@ -130,6 +130,31 @@ const MyForm = () => {
 };
 ```
 
+## UI Components
+
+The package now exports reusable form controls so application code can stay consistent with the form renderer:
+
+```tsx
+import {
+  Button,
+  Input,
+  Textarea,
+  Select,
+  Checkbox,
+  RadioGroup,
+  Switch,
+} from 'react-bit-form';
+```
+
+These components support:
+
+- Typed props with TypeScript
+- Variants and sizes
+- Disabled and loading states
+- Validation and error messaging
+- Accessible semantics and ARIA attributes
+- Shared theming through the same token system used by `Form`
+
 ---
 
 ## Schema Structure Overview
@@ -263,6 +288,25 @@ Forms are divided into sections. Each section can have its own fields, validatio
   ]
 }
 ```
+
+### Supported Renderer Field Types
+
+The built-in renderer now maps schema fields to reusable UI components instead of raw inputs.
+
+- `input`
+- `text`
+- `email`
+- `password`
+- `number`
+- `tel`
+- `url`
+- `search`
+- `select`
+- `textarea`
+- `checkbox`
+- `radio`
+- `switch`
+- `readonly`
 
 ### Section-Level Global Validation
 

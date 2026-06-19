@@ -4,6 +4,7 @@ import { cn } from "../utils/cn";
 import { getIn } from "../utils/formState";
 import ErrorMessage from "./ErrorMessage";
 import FormField from "./FormField";
+import { Button } from "./ui";
 import type { MouseEvent } from "react";
 
 interface IFormSectionProps {
@@ -101,11 +102,11 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                 {section.actionButtons?.length! > 0 && (
                   <div className="flex justify-center items-center mt-12 col-span-12 gap-x-2">
                     {section.actionButtons?.map((actionBtn, idx) => (
-                    <button
-                      data-action={actionBtn.submitterKey}
-                      data-array-index={i}
-                      data-array-name={arrayName}
-                      key={idx}
+                      <Button
+                        data-action={actionBtn.submitterKey}
+                        data-array-index={i}
+                        data-array-name={arrayName}
+                        key={idx}
                         onClick={(e: MouseEvent<HTMLButtonElement>) =>
                           actionBtn.type === "submit"
                             ? handleSubmit(
@@ -116,16 +117,11 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                             : handleClearForm(index)
                         }
                         type={actionBtn.type === "submit" ? "submit" : "button"}
-                        className={cn(
-                          "rfb-button",
-                          actionBtn.type === "reset"
-                            ? "rfb-button-secondary"
-                            : "rfb-button-primary",
-                          actionBtn.className
-                        )}
+                        variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                        className={cn("rfb-button", actionBtn.className)}
                       >
                         {actionBtn.label}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -168,7 +164,7 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
         {section.actionButtons?.length! > 0 && (
           <div className="flex justify-center items-center mt-12 col-span-12 gap-x-2">
             {section.actionButtons?.map((actionBtn, idx) => (
-                <button
+              <Button
                 key={idx}
                 onClick={(e: MouseEvent<HTMLButtonElement>) =>
                   actionBtn.type === "submit"
@@ -176,16 +172,11 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                     : handleClearForm(index)
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
-                className={cn(
-                  "rfb-button",
-                  actionBtn.type === "reset"
-                    ? "rfb-button-secondary"
-                    : "rfb-button-primary",
-                  actionBtn.className
-                )}
+                variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                className={cn("rfb-button", actionBtn.className)}
               >
                 {actionBtn.label}
-              </button>
+              </Button>
             ))}
           </div>
         )}

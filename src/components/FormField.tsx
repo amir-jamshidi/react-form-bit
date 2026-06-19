@@ -2,6 +2,14 @@ import { useForm } from "../FormProvider";
 import { IField, IOption } from "../types";
 import { cn } from "../utils/cn";
 import { getIn } from "../utils/formState";
+import {
+  Checkbox,
+  Input,
+  RadioGroup,
+  Select,
+  Switch,
+  Textarea,
+} from "./ui";
 
 interface IFormFieldProps {
   fieldName: string;
@@ -38,10 +46,11 @@ const FormField = ({
     isVisible: true,
     isEnable: true,
   };
-  const arrayErrors =
-    arrayName !== undefined ? errors[arrayName] : undefined;
+  const arrayErrors = arrayName !== undefined ? errors[arrayName] : undefined;
   const rowErrors =
-    arrayName !== undefined && indexArray !== undefined && Array.isArray(arrayErrors)
+    arrayName !== undefined &&
+    indexArray !== undefined &&
+    Array.isArray(arrayErrors)
       ? (arrayErrors[indexArray] as Record<string, string[]> | undefined)
       : undefined;
 
@@ -70,30 +79,27 @@ const FormField = ({
       ? `${arrayName}.${indexArray}.${fieldName}`
       : fieldName;
   const fieldValue = getIn(formData, fieldPath);
+  const fieldId = `${fieldName}${indexArray !== undefined ? indexArray : ""}`;
+  const errorMessage = errorList[0];
+
+  const handleValueChange = (value: string | boolean) =>
+    handleChange(
+      fieldName,
+      value,
+      sectionIndex,
+      inArray,
+      arrayName,
+      indexArray
+    );
 
   const commonPropsInputs = {
-    id: `${fieldName}${indexArray !== undefined ? indexArray : ""}`,
+    id: fieldId,
     name: fieldName,
     placeholder: fieldSchema.placeholder,
-    value: String(fieldValue ?? ""),
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      handleChange(
-        fieldName,
-        e.target.value,
-        sectionIndex,
-        inArray,
-        arrayName,
-        indexArray
-      ),
-    onBlur: () => handleOnBlur(fieldName, inArray, arrayName, indexArray),
     disabled: !fieldState.isEnable,
     autoComplete: "off",
     className: cn(
-      "rfb-control w-full py-2.5 px-3 border rounded outline-none",
-      hasError ? "rfb-control-error" : "",
-      !fieldState.isEnable
-        ? "rfb-control-disabled cursor-not-allowed"
-        : "transition-colors",
+      "w-full",
       formSchema?.inputClassName,
       formSchema.sections[sectionIndex]?.inputClassName,
       formSchema.sections[sectionIndex].fields[fieldName].inputClassName
@@ -130,7 +136,7 @@ const FormField = ({
           )}
         ></span>
         <label
-          htmlFor={`${fieldName}${indexArray !== undefined ? indexArray : ""}`}
+          htmlFor={fieldId}
           className="rfb-label text-right font-normal flex justify-center items-center"
         >
           <span
@@ -148,52 +154,52 @@ const FormField = ({
             {fieldSchema.label}
           </span>
 
-          {isRequired && <span className="rfb-label-error pt-2.5 pr-1.5">*</span>}
+          {isRequired && (
+            <span className="rfb-label-error pt-2.5 pr-1.5">*</span>
+          )}
         </label>
       </div>
 
       <div className={`relative col-span-${fieldSchema.inputCols || 7}`}>
-        {fieldSchema.type === "select" ? (
-          <Select
-            fieldName={fieldName}
-            fieldSchema={fieldSchema}
-            commonPropsInputs={commonPropsInputs}
-          />
-        ) : fieldSchema.type === "readonly" ? (
+        {fieldSchema.type === "readonly" ? (
           <p className="rfb-readonly mt-1 text-lg">
             {String(fieldValue ?? "-")}
           </p>
         ) : (
-          <input type={fieldSchema.type || "text"} {...commonPropsInputs} />
+          <FieldControl
+            fieldName={fieldName}
+            fieldSchema={fieldSchema}
+            commonPropsInputs={commonPropsInputs}
+            fieldValue={fieldValue}
+            errorMessage={errorMessage}
+            onBlur={() => handleOnBlur(fieldName, inArray, arrayName, indexArray)}
+            onValueChange={handleValueChange}
+          />
         )}
       </div>
 
-      {hasError && (
-        <>
-          <div className={`col-span-${fieldSchema.labelCols || 5}`}></div>
-          <div className={`col-span-${fieldSchema.inputCols || 7}`}>
-            {errorList.map((error, index) => (
-              <p className="rfb-field-error text-xs mt-1" key={index}>
-                {error}
-              </p>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   );
 };
 
 export default FormField;
 
-const Select = ({
+const FieldControl = ({
   fieldSchema,
   commonPropsInputs,
   fieldName,
+  fieldValue,
+  errorMessage,
+  onBlur,
+  onValueChange,
 }: {
   fieldSchema: IField;
   commonPropsInputs: Record<string, unknown>;
   fieldName: string;
+  fieldValue: unknown;
+  errorMessage?: string;
+  onBlur: () => void;
+  onValueChange: (value: string | boolean) => void;
 }) => {
   const { handleSelectOption, UseGetRemoteOptions, remoteOptions } = useForm();
 
@@ -223,26 +229,102 @@ const Select = ({
         }, null)
       : (fieldSchema.options as IOption[]);
 
-  return (
-    <select {...commonPropsInputs}>
-      <option value="">انتخاب کنید</option>
-      {fieldSchema?.remoteOptions?.endPointUrl ? (
-        <>
-          {remoteOptions[fieldName]?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </>
-      ) : (
-        <>
-          {options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </>
-      )}
-    </select>
-  );
+  const resolvedOptions =
+    fieldSchema?.remoteOptions?.endPointUrl
+      ? remoteOptions[fieldName] || []
+      : options || [];
+
+  const sharedProps = {
+    id: commonPropsInputs.id as string,
+    className: commonPropsInputs.className as string,
+    disabled: commonPropsInputs.disabled as boolean,
+    validationState: errorMessage ? "error" : "default",
+    error: errorMessage,
+  } as const;
+
+  switch (fieldSchema.type) {
+    case "select":
+      return (
+        <Select
+          {...sharedProps}
+          name={commonPropsInputs.name as string}
+          value={String(fieldValue ?? "")}
+          placeholder={(commonPropsInputs.placeholder as string) || "انتخاب کنید"}
+          options={resolvedOptions}
+          onValueChange={onValueChange}
+          onBlur={onBlur}
+        />
+      );
+    case "textarea":
+      return (
+        <Textarea
+          {...sharedProps}
+          name={commonPropsInputs.name as string}
+          placeholder={commonPropsInputs.placeholder as string}
+          value={String(fieldValue ?? "")}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            onValueChange(e.target.value)
+          }
+          onBlur={onBlur}
+        />
+      );
+    case "checkbox":
+      return (
+        <Checkbox
+          {...sharedProps}
+          name={commonPropsInputs.name as string}
+          checked={Boolean(fieldValue)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onValueChange(e.target.checked)
+          }
+          onBlur={onBlur}
+        />
+      );
+    case "radio":
+      return (
+        <RadioGroup
+          {...sharedProps}
+          name={commonPropsInputs.name as string}
+          value={String(fieldValue ?? "")}
+          options={resolvedOptions}
+          onValueChange={onValueChange}
+        />
+      );
+    case "switch":
+      return (
+        <Switch
+          {...sharedProps}
+          checked={Boolean(fieldValue)}
+          onCheckedChange={onValueChange}
+        />
+      );
+    default:
+      return (
+        <Input
+          {...sharedProps}
+          name={commonPropsInputs.name as string}
+          type={resolveInputType(fieldSchema.type)}
+          placeholder={commonPropsInputs.placeholder as string}
+          value={String(fieldValue ?? "")}
+          autoComplete={commonPropsInputs.autoComplete as string}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onValueChange(e.target.value)
+          }
+          onBlur={onBlur}
+        />
+      );
+  }
+};
+
+const resolveInputType = (fieldType: string) => {
+  if (!fieldType || fieldType === "input") return "text";
+  if (
+    ["text", "email", "password", "number", "tel", "url", "search"].includes(
+      fieldType
+    )
+  ) {
+    return fieldType;
+  }
+
+  return "text";
 };
