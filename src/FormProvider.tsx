@@ -14,6 +14,7 @@ import useResetForm from "./hooks/useResetForm";
 import useServices from "./hooks/useServices";
 import useValidation from "./hooks/useValidation";
 import {
+  buildEmptySectionData,
   buildInitialFormData,
   getAllFields,
   getFieldSchema,
@@ -73,7 +74,11 @@ interface FormContextType {
   ) => boolean;
   // --
   checkFormState: () => "error" | "notFill" | "valid" | null;
-  handleClearForm: (sectionIndex?: number) => void;
+  handleClearForm: (
+    sectionIndex?: number,
+    arrayName?: string,
+    arrayIndex?: number
+  ) => void;
   handleSelectOption: (conditions: IConditionProps) => boolean | undefined;
   UseGetRemoteOptions: ({
     endPointUrl,
@@ -250,11 +255,12 @@ const FormProvider = ({
     sectionIndex?: number
   ) => {
     e.preventDefault();
+    const button = e.currentTarget as HTMLElement;
+    const rawArrayIndex = button.dataset?.arrayIndex;
+    const arrayIndex =
+      rawArrayIndex !== undefined ? Number(rawArrayIndex) : undefined;
+    const arrayName = button.dataset?.arrayName;
 
-    const target = e.nativeEvent.target as HTMLElement;
-    const arrayIndex = Number(target?.dataset?.arrayIndex);
-    const arrayName = target?.dataset?.arrayName;
-    // const action = target?.dataset?.action;
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
       onSubmit({ formData, sectionIndex });
     }
@@ -280,32 +286,78 @@ const FormProvider = ({
     return null;
   };
 
-  const handleClearForm = (sectionIndex?: number) => {
+  const handleClearForm = (
+    sectionIndex?: number,
+    arrayName?: string,
+    arrayIndex?: number
+  ) => {
     if (sectionIndex === undefined) {
       setErrors({});
-      setFormData({});
+      setFormData(buildInitialFormData(formSchema));
       setFieldStates({});
       setTouched({});
       return;
     }
-    const fieldNames = Object.keys(formSchema.sections[sectionIndex].fields);
+    const section = formSchema.sections[sectionIndex];
+    const fieldNames = Object.keys(section.fields);
 
-    const formData = fieldNames.reduce<Record<string, FormValue>>(
+    if (section.isArray && section.arrayName) {
+      const nextRow = buildEmptySectionData(section) as FormValue[];
+
+      if (arrayName && arrayIndex !== undefined) {
+        setFormData((prev) =>
+          setIn(prev, `${arrayName}.${arrayIndex}`, nextRow[0] ?? {})
+        );
+        setErrors((prev) => {
+          const nextErrors = fieldNames.reduce<Record<string, string[]>>(
+            (result, fieldName) => {
+              result[fieldName] = [];
+              return result;
+            },
+            {}
+          );
+          return setIn(prev, `${arrayName}.${arrayIndex}`, nextErrors);
+        });
+        setTouched((prev) => {
+          const nextTouched = fieldNames.reduce<Record<string, boolean>>(
+            (result, fieldName) => {
+              result[`${arrayName}.${arrayIndex}.${fieldName}`] = false;
+              return result;
+            },
+            {}
+          );
+          return { ...prev, ...nextTouched };
+        });
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        [section.arrayName!]: nextRow,
+      }));
+      setErrors((prev) => ({
+        ...prev,
+        [section.arrayName!]: [],
+      }));
+      return;
+    }
+
+    const nextFormData = fieldNames.reduce<Record<string, FormValue>>(
       (prev, cur) => ({ ...prev, [cur]: "" }),
       {}
     );
-    const errors = fieldNames.reduce(
+    const nextErrors = fieldNames.reduce(
       (prev, cur) => ({ ...prev, [cur]: [] }),
       {}
     );
-    const touched = fieldNames.reduce(
+    const nextTouched = fieldNames.reduce(
       (prev, cur) => ({ ...prev, [cur]: false }),
       {}
     );
 
-    setFormData((prev) => ({ ...prev, ...formData }));
-    setErrors((prev) => ({ ...prev, ...errors }));
-    setTouched((prev) => ({ ...prev, ...touched }));
+    setFormData((prev) => ({ ...prev, ...nextFormData }));
+    setErrors((prev) => ({ ...prev, ...nextErrors }));
+    setTouched((prev) => ({ ...prev, ...nextTouched }));
   };
 
   const contextValue: FormContextType = {

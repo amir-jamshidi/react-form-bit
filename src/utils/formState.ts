@@ -139,6 +139,26 @@ const createEmptyRow = (section: ISection): Record<string, string> => {
   );
 };
 
+export const buildEmptySectionData = (
+  section: ISection
+): Record<string, FormValue> | FormValue[] => {
+  if (section.isArray && section.arrayName) {
+    if (section.defaultItems?.length) {
+      return deepClone(section.defaultItems) as FormValue[];
+    }
+
+    return [createEmptyRow(section)] as FormValue[];
+  }
+
+  return Object.keys(section.fields).reduce<Record<string, FormValue>>(
+    (result, fieldName) => {
+      result[fieldName] = "";
+      return result;
+    },
+    {}
+  );
+};
+
 export const buildInitialFormData = (
   formSchema: IFormSchema,
   remoteDefaults?: Record<string, FormValue>

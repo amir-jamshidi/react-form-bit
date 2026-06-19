@@ -26,13 +26,10 @@ const useValidation = ({
     //* ---------------------------------------------------- Array Form ---------------------------------------------
 
     //! HELPER FN
-    const getArrayFields = () => {
-        return formSchema.sections
-            .filter((section) => section.isArray)
-            .reduce<Record<string, IField>>((accumulator, section) => ({
-                ...accumulator,
-                ...section.fields,
-            }), {});
+    const getArraySections = () => {
+        return formSchema.sections.filter(
+            (section) => section.isArray && section.arrayName
+        );
     }
 
     const getSectionArrayFields = ({ sectionIndex }: { sectionIndex: number }) => {
@@ -88,18 +85,22 @@ const useValidation = ({
 
     //! VALIDATE ALL ARRAY FORMS
     const ValidateArrayForm = (): boolean => {
-        const fieldsSchema = getArrayFields();
-        const arrayNames = [...new Set(Object.values(fieldsSchema).map(schema => schema.parentArrayName))];
-        const errors: Record<string, Record<string, any>[]> = {};
+        const arraySections = getArraySections();
+        const nextErrors: Record<string, Record<string, any>[]> = {};
+        let hasError = false;
 
-        arrayNames.forEach(arrayName => {
-            if (!arrayName) throw new Error("ERROR TO READ ARRAY NAMES")
-            errors[arrayName] = [];
-            formData[arrayName]?.forEach((formObject: any, formIndex: number) => {
-                errors[arrayName][formIndex] = errors[arrayName][formIndex] || {};
+        arraySections.forEach(section => {
+            const arrayName = section.arrayName!;
+            nextErrors[arrayName] = [];
 
-                Object.keys(formObject).forEach(fieldName => {
-                    const fieldSchema = fieldsSchema[fieldName];
+            const rows = formData[arrayName];
+            if (!Array.isArray(rows)) return;
+
+            rows.forEach((formObject: any, formIndex: number) => {
+                nextErrors[arrayName][formIndex] = nextErrors[arrayName][formIndex] || {};
+
+                Object.keys(section.fields).forEach(fieldName => {
+                    const fieldSchema = section.fields[fieldName];
                     if (!fieldSchema) return;
                     const fieldErrors = validateAndUpdateArrayForms({
                         fieldName,
@@ -109,8 +110,11 @@ const useValidation = ({
                     });
 
                     if (fieldErrors) {
-                        errors[arrayName][formIndex] = {
-                            ...errors[arrayName][formIndex],
+                        if ((fieldErrors[fieldName]?.length ?? 0) > 0) {
+                            hasError = true;
+                        }
+                        nextErrors[arrayName][formIndex] = {
+                            ...nextErrors[arrayName][formIndex],
                             ...fieldErrors
                         };
                     }
@@ -118,9 +122,8 @@ const useValidation = ({
             });
         });
 
-        console.log(errors)
-        setErrors(errors as any);
-        return Object.keys(errors).length === 0;
+        setErrors(prevErrors => ({ ...prevErrors, ...nextErrors } as any));
+        return !hasError;
     };
 
     //! VALIDATE ONE INDEX OF ONE SECTION ARRAY FORM

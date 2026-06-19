@@ -114,7 +114,7 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                                 actionBtn.validateFields || "ALL",
                                 index
                               )
-                            : handleClearForm(index)
+                            : handleClearForm(index, arrayName, i)
                         }
                         type={actionBtn.type === "submit" ? "submit" : "button"}
                         variant={actionBtn.type === "reset" ? "secondary" : "primary"}

@@ -269,7 +269,6 @@ const Select = ({
                         isActive && "is-active",
                         isSelected && "is-selected"
                       )}
-                      onMouseEnter={() => setActiveIndex(index)}
                       onClick={() => commitSelection(option.value)}
                     >
                       <span className="rfb-ui-select-option__label">
