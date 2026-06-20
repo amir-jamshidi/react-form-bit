@@ -165,6 +165,7 @@ export interface IActionButtons {
     className?: string;
     type: 'submit' | 'reset';
     validateFields?: 'ALL' | string[];
+    loadingLabel?: string;
 }
 
 // Section action button interface
@@ -174,4 +175,5 @@ export interface ISectionActionButtons {
     className?: string;
     type: 'submit' | 'reset';
     validateFields: 'ALL' | 'SECTION' | string[];
+    loadingLabel?: string;
 }

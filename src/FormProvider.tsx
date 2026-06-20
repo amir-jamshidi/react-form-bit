@@ -7,6 +7,7 @@ import {
   type SetStateAction,
   useContext,
   useEffect,
+  useState,
 } from "react";
 import useFormState, { TErrorsType } from "./hooks/useFormState";
 import useGlobalErrors from "./hooks/useGlobalErrors";
@@ -74,6 +75,12 @@ interface FormContextType {
   ) => boolean;
   // --
   checkFormState: () => "error" | "notFill" | "valid" | null;
+  isFormLoading: boolean;
+  isSectionLoading: (
+    sectionIndex: number,
+    arrayName?: string,
+    arrayIndex?: number
+  ) => boolean;
   handleClearForm: (
     sectionIndex?: number,
     arrayName?: string,
@@ -100,11 +107,25 @@ interface FormProviderProps {
   onSubmit: ({
     formData,
     sectionIndex,
+    arrayIndex,
+    arrayName,
   }: {
     formData: Record<string, FormValue>;
     sectionIndex?: number;
-  }) => void;
+    arrayIndex?: number;
+    arrayName?: string;
+  }) => void | Promise<unknown>;
 }
+
+type LoadingScope =
+  | { type: "form" }
+  | {
+      type: "section";
+      sectionIndex: number;
+      arrayName?: string;
+      arrayIndex?: number;
+    }
+  | null;
 
 const FormProvider = ({
   children,
@@ -112,6 +133,7 @@ const FormProvider = ({
   onSubmit,
 }: FormProviderProps) => {
   const formStates = useFormState();
+  const [loadingScope, setLoadingScope] = useState<LoadingScope>(null);
   const {
     formData,
     fieldStates,
@@ -286,9 +308,36 @@ const FormProvider = ({
     const arrayName = button.dataset?.arrayName;
 
     if (isValidForm(validateFields, sectionIndex, arrayIndex, arrayName)) {
-      onSubmit({ formData, sectionIndex });
+      const result = onSubmit({
+        formData,
+        sectionIndex,
+        arrayIndex,
+        arrayName,
+      });
+
+      if (isPromiseLike(result)) {
+        const nextScope: LoadingScope =
+          sectionIndex === undefined
+            ? { type: "form" }
+            : {
+                type: "section",
+                sectionIndex,
+                arrayName,
+                arrayIndex,
+              };
+
+        setLoadingScope(nextScope);
+        void result.finally(() => {
+          setLoadingScope((current) =>
+            isSameLoadingScope(current, nextScope) ? null : current
+          );
+        });
+      }
     }
   };
+
+
+  console.log(errors,'error')
 
   const checkFormState = () => {
     const allFields = getAllFields(formSchema.sections);
@@ -308,6 +357,26 @@ const FormProvider = ({
     if (notFill) return "notFill";
     if (isValid) return "valid";
     return null;
+  };
+
+  const isFormLoading = loadingScope?.type === "form";
+
+  const isSectionLoading = (
+    sectionIndex: number,
+    arrayName?: string,
+    arrayIndex?: number
+  ) => {
+    if (loadingScope?.type !== "section") return false;
+    if (loadingScope.sectionIndex !== sectionIndex) return false;
+
+    if (loadingScope.arrayName !== undefined || arrayName !== undefined) {
+      return (
+        loadingScope.arrayName === arrayName &&
+        loadingScope.arrayIndex === arrayIndex
+      );
+    }
+
+    return true;
   };
 
   const handleClearForm = (
@@ -391,6 +460,8 @@ const FormProvider = ({
     handleSubmit,
     isFieldRequired,
     checkFormState,
+    isFormLoading,
+    isSectionLoading,
     formSchema,
     handleClearForm,
     handleSelectOption,
@@ -410,3 +481,24 @@ export const useForm = () => {
 };
 
 export default FormProvider;
+
+const isPromiseLike = (
+  value: void | Promise<unknown>
+): value is Promise<unknown> => {
+  return Boolean(value && typeof value === "object" && "finally" in value);
+};
+
+const isSameLoadingScope = (
+  left: LoadingScope,
+  right: LoadingScope
+) => {
+  if (!left || !right) return left === right;
+  if (left.type !== right.type) return false;
+  if (left.type === "form" && right.type === "form") return true;
+
+  return (
+    left.sectionIndex === right.sectionIndex &&
+    left.arrayName === right.arrayName &&
+    left.arrayIndex === right.arrayIndex
+  );
+};

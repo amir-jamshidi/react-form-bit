@@ -59,7 +59,9 @@ const Input = ({
           {...props}
         />
         {loading ? (
-          <Spinner className="rfb-ui-control__adornment" />
+          <span className="rfb-ui-control__adornment">
+            <Spinner />
+          </span>
         ) : (
           endAdornment && (
             <span className="rfb-ui-control__adornment">{endAdornment}</span>

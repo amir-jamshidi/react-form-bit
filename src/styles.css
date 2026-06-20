@@ -211,12 +211,34 @@ select {
 }
 
 .rfb-ui-spinner {
-  width: 1rem;
-  height: 1rem;
+  position: relative;
+  width: 0.95rem;
+  height: 0.95rem;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rfb-ui-spinner__ring,
+.rfb-ui-spinner__core {
+  position: absolute;
+  inset: 0;
   border-radius: 999px;
-  border: 2px solid color-mix(in srgb, var(--rfb-text-soft) 18%, transparent);
-  border-top-color: currentColor;
-  animation: rfb-spin 700ms linear infinite;
+}
+
+.rfb-ui-spinner__ring {
+  border: 2px solid color-mix(in srgb, var(--rfb-accent) 18%, transparent);
+  border-top-color: color-mix(in srgb, var(--rfb-accent) 82%, white);
+  border-right-color: color-mix(in srgb, var(--rfb-primary) 78%, white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rfb-bg) 28%, transparent);
+  animation: rfb-spin 760ms linear infinite;
+}
+
+.rfb-ui-spinner__core {
+  inset: 0.24rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rfb-bg) 70%, white);
+  opacity: 0.96;
 }
 
 .rfb-ui-control-shell {
@@ -305,6 +327,10 @@ select {
   padding-inline: 0.85rem;
   color: var(--rfb-muted);
   flex-shrink: 0;
+}
+
+.rfb-ui-control__adornment .rfb-ui-spinner {
+  filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--rfb-accent) 12%, transparent));
 }
 
 .rfb-ui-control__floating-adornment {
@@ -649,6 +675,7 @@ select {
   border-radius: 28px;
   box-shadow: var(--rfb-shadow);
   backdrop-filter: blur(18px);
+  transition: opacity 180ms ease, filter 180ms ease;
 }
 
 .rfb-card[data-has-background="false"] {
@@ -721,12 +748,19 @@ select {
   border: 1px solid var(--rfb-border);
   border-radius: 24px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: opacity 180ms ease, filter 180ms ease;
 }
 
 .rfb-section[data-has-background="false"] {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
+}
+
+.rfb-card[data-loading="true"],
+.rfb-section[data-loading="true"] {
+  opacity: 0.78;
+  filter: saturate(0.88);
 }
 
 .rfb-section__intro {

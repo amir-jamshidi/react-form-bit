@@ -9,7 +9,10 @@ const Spinner = ({ className }: SpinnerProps) => {
       className={["rfb-ui-spinner inline-flex", className]
         .filter(Boolean)
         .join(" ")}
-    />
+    >
+      <span className="rfb-ui-spinner__ring" />
+      <span className="rfb-ui-spinner__core" />
+    </span>
   );
 };
 

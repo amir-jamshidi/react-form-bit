@@ -56,7 +56,9 @@ const Textarea = ({
           {...props}
         />
         {loading ? (
-          <Spinner className="rfb-ui-control__floating-adornment" />
+          <span className="rfb-ui-control__floating-adornment">
+            <Spinner />
+          </span>
         ) : (
           endAdornment && (
             <span className="rfb-ui-control__floating-adornment">

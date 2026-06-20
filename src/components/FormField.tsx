@@ -35,6 +35,8 @@ const FormField = ({
     formData,
     formSchema,
     fieldStates,
+    isFormLoading,
+    isSectionLoading,
   } = useForm();
 
   const sectionWithField = formSchema.sections.find(
@@ -82,6 +84,9 @@ const FormField = ({
   const fieldValue = getIn(formData, fieldPath);
   const fieldId = `${fieldName}${indexArray !== undefined ? indexArray : ""}`;
   const errorMessage = errorList[0];
+  const isLoading =
+    isFormLoading ||
+    isSectionLoading(sectionIndex, inArray ? arrayName : undefined, indexArray);
 
   const handleValueChange = (value: string | boolean) =>
     handleChange(
@@ -173,6 +178,7 @@ const FormField = ({
             commonPropsInputs={commonPropsInputs}
             fieldValue={fieldValue}
             errorMessage={errorMessage}
+            isLoading={isLoading}
             onBlur={() => handleOnBlur(fieldName, inArray, arrayName, indexArray)}
             onValueChange={handleValueChange}
           />
@@ -201,6 +207,7 @@ const FieldControl = ({
   fieldName,
   fieldValue,
   errorMessage,
+  isLoading,
   onBlur,
   onValueChange,
 }: {
@@ -209,6 +216,7 @@ const FieldControl = ({
   fieldName: string;
   fieldValue: unknown;
   errorMessage?: string;
+  isLoading: boolean;
   onBlur: () => void;
   onValueChange: (value: string | boolean) => void;
 }) => {
@@ -248,9 +256,10 @@ const FieldControl = ({
   const sharedProps = {
     id: commonPropsInputs.id as string,
     className: commonPropsInputs.className as string,
-    disabled: commonPropsInputs.disabled as boolean,
+    disabled: (commonPropsInputs.disabled as boolean) || isLoading,
     validationState: errorMessage ? "error" : "default",
     error: errorMessage,
+    loading: isLoading,
   } as const;
 
   switch (fieldSchema.type) {

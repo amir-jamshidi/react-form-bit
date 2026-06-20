@@ -20,6 +20,14 @@ const themeOptions: { value: FormTheme; label: string }[] = [
   { value: "headless", label: "Headless" },
 ];
 
+interface ISubmitLog {
+  id: string;
+  scope: string;
+  status: "pending" | "resolved";
+  startedAt: string;
+  finishedAt?: string;
+}
+
 const App = () => {
   const [theme, setTheme] = useState<FormTheme>("modern");
   const [previewInput, setPreviewInput] = useState("");
@@ -28,20 +36,70 @@ const App = () => {
   const [previewChecked, setPreviewChecked] = useState(true);
   const [previewSwitch, setPreviewSwitch] = useState(false);
   const [previewRadio, setPreviewRadio] = useState("starter");
+  const [submitLogs, setSubmitLogs] = useState<ISubmitLog[]>([]);
 
-  const handleSubmit = ({
+  const handleSubmit = async ({
     formData,
     sectionIndex,
+    arrayIndex,
+    arrayName,
   }: {
     formData: any;
     sectionIndex?: number;
+    arrayIndex?: number;
+    arrayName?: string;
   }) => {
-    console.log("run ....", formData, sectionIndex);
+    const scope =
+      sectionIndex === undefined
+        ? "Full form submit"
+        : arrayName !== undefined && arrayIndex !== undefined
+          ? `Array section submit (${arrayName}[${arrayIndex}])`
+          : `Section submit (${sectionIndex})`;
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = new Date().toLocaleTimeString();
+
+    setSubmitLogs((prev) => [
+      {
+        id,
+        scope,
+        status: "pending",
+        startedAt,
+      },
+      ...prev,
+    ]);
+
+    await fakeApiCall({
+      delay:
+        sectionIndex === undefined
+          ? 2600
+          : arrayName !== undefined && arrayIndex !== undefined
+            ? 2200
+            : 1800,
+      payload: {
+        formData,
+        sectionIndex,
+        arrayIndex,
+        arrayName,
+      },
+    });
+
+    setSubmitLogs((prev) =>
+      prev.map((entry) =>
+        entry.id === id
+          ? {
+              ...entry,
+              status: "resolved",
+              finishedAt: new Date().toLocaleTimeString(),
+            }
+          : entry,
+      ),
+    );
   };
 
   return (
     <div className="min-h-screen px-4 py-8">
-      <div className="max-w-[1000px] mx-auto mb-6 flex items-center justify-between gap-3 flex-wrap">
+      {/* <div className="max-w-[1000px] mx-auto mb-6 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
             React Form Bit
@@ -64,6 +122,76 @@ const App = () => {
           ))}
         </div>
       </div>
+      <div className="max-w-[1000px] mx-auto mb-8 grid gap-4 md:grid-cols-[1.25fr_0.95fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+            Async Submit Scenario
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            Manual loading-state test
+          </h2>
+          <div className="mt-4 space-y-2 text-sm text-slate-600">
+            <p>
+              1. Submit the first section and verify only that section becomes
+              disabled.
+            </p>
+            <p>
+              2. Submit a bank row and verify only that array row becomes
+              disabled.
+            </p>
+            <p>
+              3. Submit the full form and verify every field and button becomes
+              disabled until the request resolves.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                Request Log
+              </p>
+              <h3 className="mt-2 text-xl font-semibold text-slate-900">
+                Async calls
+              </h3>
+            </div>
+            <span className="rounded-full bg-slate-900 px-3 py-1 text-xs text-white">
+              {submitLogs.length}
+            </span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {submitLogs.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500">
+                No submit requests yet.
+              </p>
+            ) : (
+              submitLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-slate-900">{log.scope}</p>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs ${
+                        log.status === "pending"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-emerald-100 text-emerald-800"
+                      }`}
+                    >
+                      {log.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Started: {log.startedAt}
+                    {log.finishedAt ? ` | Finished: ${log.finishedAt}` : ""}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div> */}
   
       <Form onSubmit={handleSubmit} formSchema={formSchema} theme={theme} />
     </div>
@@ -152,6 +280,7 @@ export const formSchema: IFormSchema = {
       actionButtons: [
         {
           label: "ارسال فرم",
+          loadingLabel: "در حال ارسال...",
           submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "SECTION",
@@ -248,6 +377,7 @@ export const formSchema: IFormSchema = {
       actionButtons: [
         {
           label: "ارسال فرم",
+          loadingLabel: "در حال ارسال...",
           submitterKey: "SUBMIT",
           type: "submit",
           validateFields: "SECTION",
@@ -262,6 +392,7 @@ export const formSchema: IFormSchema = {
   actionButtons: [
     {
       label: "تایید و مرحله بعد",
+      loadingLabel: "در حال ثبت فرم...",
       submitterKey: "SUBMIT",
       type: "submit",
       validateFields: "ALL",
@@ -274,4 +405,21 @@ export const formSchema: IFormSchema = {
       className: "w-52",
     },
   ],
+};
+
+const fakeApiCall = async ({
+  delay,
+  payload,
+}: {
+  delay: number;
+  payload: unknown;
+}) => {
+  await new Promise((resolve) => {
+    window.setTimeout(resolve, delay);
+  });
+
+  return {
+    ok: true,
+    payload,
+  };
 };

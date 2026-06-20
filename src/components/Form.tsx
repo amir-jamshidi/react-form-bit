@@ -10,7 +10,17 @@ import type { MouseEvent } from "react";
 
 interface IFormProps {
   formSchema: IFormSchema;
-  onSubmit: ({ formData }: { formData: any; sectionIndex?: number }) => void;
+  onSubmit: ({
+    formData,
+    sectionIndex,
+    arrayIndex,
+    arrayName,
+  }: {
+    formData: any;
+    sectionIndex?: number;
+    arrayIndex?: number;
+    arrayName?: string;
+  }) => void | Promise<unknown>;
   theme?: FormTheme;
 }
 
@@ -28,7 +38,7 @@ function FormGen({
   formSchema,
   theme,
 }: Pick<IFormProps, "formSchema" | "theme">) {
-  const { handleSubmit, handleClearForm } = useForm();
+  const { handleSubmit, handleClearForm, isFormLoading } = useForm();
   const showHeader = formSchema.showHeader !== false;
   const hasBackground = formSchema.hasBackground !== false;
 
@@ -42,6 +52,7 @@ function FormGen({
         <form
           className="rfb-card py-5 px-6"
           data-has-background={hasBackground}
+          data-loading={isFormLoading}
         >
           {formSchema.sections.map((section, i) => (
             <FormSection key={i} section={section} index={i} />
@@ -58,9 +69,13 @@ function FormGen({
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
                 variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                loading={actionBtn.type === "submit" && isFormLoading}
+                disabled={isFormLoading}
                 className={cn("rfb-button", actionBtn.className)}
               >
-                {actionBtn.label}
+                {actionBtn.type === "submit" && isFormLoading
+                  ? actionBtn.loadingLabel || actionBtn.label
+                  : actionBtn.label}
               </Button>
             ))}
           </div>

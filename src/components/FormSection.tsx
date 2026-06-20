@@ -20,6 +20,8 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
     formData,
     errors,
     handleClearForm,
+    isFormLoading,
+    isSectionLoading,
   } = useForm();
   const showSectionHeader = section.showHeader !== false;
   const hasSectionBackground = section.hasBackground !== false;
@@ -64,12 +66,15 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
               ) && !getIn(formData, `${arrayName}.${i}.${fieldName}`)
             );
           });
+          const isLoading =
+            isFormLoading || isSectionLoading(index, arrayName, i);
           return (
             <div key={`${arrayName}-${i}`}>
               <ErrorMessage errorKey={`section.${index}`} />
               <div
                 className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4"
                 data-has-background={hasSectionBackground}
+                data-loading={isLoading}
               >
                 {showSectionHeader ? (
                   <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
@@ -138,9 +143,13 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                         variant={
                           actionBtn.type === "reset" ? "secondary" : "primary"
                         }
+                        loading={actionBtn.type === "submit" && isLoading}
+                        disabled={isLoading}
                         className={cn("rfb-button", actionBtn.className)}
                       >
-                        {actionBtn.label}
+                        {actionBtn.type === "submit" && isLoading
+                          ? actionBtn.loadingLabel || actionBtn.label
+                          : actionBtn.label}
                       </Button>
                     ))}
                   </div>
@@ -152,12 +161,14 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
       </>
     );
   }
+  const isLoading = isFormLoading || isSectionLoading(index);
   return (
     <div>
       <ErrorMessage errorKey={`section.${index}`} />
       <div
         className="rfb-section grid grid-cols-12 gap-x-8 gap-y-4 px-3 pb-8 mb-4"
         data-has-background={hasSectionBackground}
+        data-loading={isLoading}
       >
         {showSectionHeader ? (
           <div className="rfb-section__intro mx-2 py-3 mt-1 px-2 col-span-12">
@@ -206,9 +217,13 @@ const FormSection = ({ section, index }: IFormSectionProps) => {
                 }
                 type={actionBtn.type === "submit" ? "submit" : "button"}
                 variant={actionBtn.type === "reset" ? "secondary" : "primary"}
+                loading={actionBtn.type === "submit" && isLoading}
+                disabled={isLoading}
                 className={cn("rfb-button", actionBtn.className)}
               >
-                {actionBtn.label}
+                {actionBtn.type === "submit" && isLoading
+                  ? actionBtn.loadingLabel || actionBtn.label
+                  : actionBtn.label}
               </Button>
             ))}
           </div>
