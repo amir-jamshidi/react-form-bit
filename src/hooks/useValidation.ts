@@ -1,7 +1,7 @@
 import { IConditionProps, IField, IFieldState, IFormSchema, IValidation } from "../types";
 import ValidatorEngine from "../utils/ValidatorEngine";
 import { TErrorsType } from "./useFormState";
-import { getAllFields, getFieldSchema, getIn, setIn } from "../utils/formState";
+import { getFieldSchema, getIn, setIn } from "../utils/formState";
 
 
 interface IuseValidation {
@@ -48,6 +48,15 @@ const useValidation = ({
         }, {});
     }
 
+    const getNonArrayFields = () => {
+        return formSchema.sections
+            .filter((section) => !section.isArray)
+            .reduce<Record<string, IField>>((accumulator, section) => ({
+                ...accumulator,
+                ...section.fields,
+            }), {});
+    }
+
     //! HELPER FN => RETURN EMPTY ERRORS FOR FIELDS WE NOT VALIDATION FOR IT
     const getEmptyErrors = ({ skipFields }: { skipFields: string[] }): Record<string, string[]> => {
         return Object.fromEntries(
@@ -69,8 +78,9 @@ const useValidation = ({
         }
 
         if (hasArraySection && fieldsToValidate === 'ALL') {
-            ValidateArrayForm();
-            ValidateAllForm();
+            const isArrayValid = ValidateArrayForm();
+            const isFormValid = ValidateAllForm();
+            return isArrayValid && isFormValid;
         }
 
         if (fieldsToValidate === 'ALL') return ValidateAllForm();
@@ -164,7 +174,7 @@ const useValidation = ({
     const ValidateAllForm = (): boolean => {
         let touchedFields: Record<string, boolean> = {}
         let errors = {}
-        const fieldsSchema = getAllFields(formSchema.sections);
+        const fieldsSchema = getNonArrayFields();
         Object.entries(fieldsSchema).forEach(([fieldName, fieldSchema]) => {
             const fieldError = validateAndUpdateNormalForm({ fieldName, fieldSchema })
             if (fieldError) {
